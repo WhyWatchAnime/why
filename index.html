@@ -211,9 +211,9 @@
     .chamber-shell.large { padding: 18px; }
     svg { width: 100%; height: auto; display: block; }
     #lowerChamber .chamber-shell, #upperChamber .chamber-shell { min-height: 520px; }
-    #presentationLower .chamber-shell, #presentationUpper .chamber-shell { min-height: 980px; }
+    #presentationLower .chamber-shell, #presentationUpper .chamber-shell { min-height: 1100px; }
     #lowerChamber svg, #upperChamber svg { min-height: 480px; }
-    #presentationLower svg, #presentationUpper svg { min-height: 920px; }
+    #presentationLower svg, #presentationUpper svg { min-height: 1040px; }
     .chamber-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0,1fr));
@@ -424,7 +424,7 @@
     <section id="tab-chamber" class="tab-panel hidden">
       <div class="presentation-grid">
         <div>
-          <div class="card"><h2>Chamber view</h2><p class="muted">Large-format chamber display.</p><div id="presentationLower"></div><div id="presentationUpperWrap" class="hidden" style="margin-top:18px;"><div id="presentationUpper"></div></div></div>
+          <div class="card large-chamber"><h2>Chamber view</h2><p class="muted">Large-format chamber display.</p><div id="presentationLower"></div><div id="presentationUpperWrap" class="hidden" style="margin-top:18px;"><div id="presentationUpper"></div></div></div>
         </div>
         <div>
           <div class="card"><h2>Seat legend</h2><div id="presentationLegend"></div></div>
@@ -770,7 +770,7 @@
 
     function svgChamber({ title, subtitle, assignments, chamberType, totalSeats, maj, crest, governmentLabel, oppositionLabel, crossbenchLabel, governmentLeaderName, oppositionLeaderName, governmentPartners, oppositionPartners, stoolDotColor, large }) {
       const dots = seatDots(assignments, chamberType, state.sortStrength);
-      const svgMinHeight = large ? "920px" : "480px";
+      const svgMinHeight = large ? "1040px" : "480px";
       const speakerDot = stoolDotColor ? `<circle cx="50" cy="59.4" r="1.1" fill="${stoolDotColor}" stroke="#f5ead8" stroke-width="0.22" />` : "";
       const govPartnersText = governmentPartners.length ? `<text x="9" y="21.1" font-size="1.1" fill="#8a6a45" style="font-family: Georgia, serif;">With ${escapeXml(governmentPartners.join(", "))}</text>` : "";
       const oppPartnersText = oppositionPartners.length ? `<text x="86" y="21.1" text-anchor="end" font-size="1.1" fill="#8a6a45" style="font-family: Georgia, serif;">With ${escapeXml(oppositionPartners.join(", "))}</text>` : "";
@@ -859,6 +859,7 @@
       document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.add("hidden"));
       document.getElementById(`tab-${name}`).classList.remove("hidden");
       requestAnimationFrame(() => {
+        render();
         window.dispatchEvent(new Event("resize"));
       });
     }
