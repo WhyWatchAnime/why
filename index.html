@@ -771,23 +771,27 @@
     function svgChamber({ title, subtitle, assignments, chamberType, totalSeats, maj, crest, governmentLabel, oppositionLabel, crossbenchLabel, governmentLeaderName, oppositionLeaderName, governmentPartners, oppositionPartners, stoolDotColor, large }) {
       const dots = seatDots(assignments, chamberType, state.sortStrength);
       const svgMinHeight = large ? "1040px" : "480px";
+      const viewBox = large ? "0 8 100 68" : "0 0 100 78";
+      const uid = `svg_${Math.random().toString(36).slice(2, 9)}`;
+      const woodId = `wood_${uid}`;
+      const shadowId = `paperShadow_${uid}`;
       const speakerDot = stoolDotColor ? `<circle cx="50" cy="59.4" r="1.1" fill="${stoolDotColor}" stroke="#f5ead8" stroke-width="0.22" />` : "";
       const govPartnersText = governmentPartners.length ? `<text x="9" y="21.1" font-size="1.1" fill="#8a6a45" style="font-family: Georgia, serif;">With ${escapeXml(governmentPartners.join(", "))}</text>` : "";
       const oppPartnersText = oppositionPartners.length ? `<text x="86" y="21.1" text-anchor="end" font-size="1.1" fill="#8a6a45" style="font-family: Georgia, serif;">With ${escapeXml(oppositionPartners.join(", "))}</text>` : "";
       return `
         <div class="chamber-shell ${large ? 'large' : ''}">
-          <svg viewBox="0 0 100 78" style="aspect-ratio: 100 / 78; min-height: ${svgMinHeight};" preserveAspectRatio="xMidYMid meet">
+          <svg viewBox="${viewBox}" style="aspect-ratio: 100 / 78; min-height: ${svgMinHeight};" preserveAspectRatio="xMidYMid meet">
             <defs>
-              <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6d4322"></stop><stop offset="100%" stop-color="#3f2410"></stop></linearGradient>
-              <filter id="paperShadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="0.8" flood-opacity="0.25"></feDropShadow></filter>
+              <linearGradient id="${woodId}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6d4322"></stop><stop offset="100%" stop-color="#3f2410"></stop></linearGradient>
+              <filter id="${shadowId}" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="0.8" flood-opacity="0.25"></feDropShadow></filter>
             </defs>
             <rect x="1.5" y="1.5" width="97" height="75" rx="3" fill="none" stroke="#7a5b34" stroke-width="0.6"></rect>
             <rect x="3" y="3" width="94" height="72" rx="2" fill="none" stroke="#b28b57" stroke-width="0.25"></rect>
             <text x="50" y="8" text-anchor="middle" font-size="4.4" fill="#f2dcc2" style="font-family: Georgia, serif; letter-spacing: .8px;">${escapeXml(title)}</text>
             <text x="50" y="12.5" text-anchor="middle" font-size="2.4" fill="#f0b270" style="font-family: Georgia, serif;">${escapeXml(subtitle)}</text>
             ${crest ? `<text x="50" y="18" text-anchor="middle" font-size="4" fill="#d3a15b">${escapeXml(crest)}</text>` : ''}
-            ${dots.map(d => `<g filter="url(#paperShadow)"><circle cx="${d.x}" cy="${d.y}" r="1.32" fill="${d.color}" stroke="#f6ead6" stroke-width="0.18"></circle></g>`).join('')}
-            ${state.showSpeaker ? `<g><rect x="43" y="60.5" width="14" height="6" rx="0.8" fill="url(#wood)" stroke="#f3ead8" stroke-width="0.25"></rect><rect x="47" y="57.5" width="6" height="4" rx="0.6" fill="#c29666" stroke="#f3ead8" stroke-width="0.2"></rect>${speakerDot}<text x="50" y="70.8" text-anchor="middle" font-size="1.7" fill="#edae6d" style="font-family: Georgia, serif;">Speaker's Stool</text></g>` : ''}
+            ${dots.map(d => `<g filter="url(#${shadowId})"><circle cx="${d.x}" cy="${d.y}" r="1.32" fill="${d.color}" stroke="#f6ead6" stroke-width="0.18"></circle></g>`).join('')}
+            ${state.showSpeaker ? `<g><rect x="43" y="60.5" width="14" height="6" rx="0.8" fill="url(#${woodId})" stroke="#f3ead8" stroke-width="0.25"></rect><rect x="47" y="57.5" width="6" height="4" rx="0.6" fill="#c29666" stroke="#f3ead8" stroke-width="0.2"></rect>${speakerDot}<text x="50" y="70.8" text-anchor="middle" font-size="1.7" fill="#edae6d" style="font-family: Georgia, serif;">Speaker's Stool</text></g>` : ''}
             <text x="10" y="73" font-size="2.15" fill="#edae6d" style="font-family: Georgia, serif;">Seats: ${totalSeats}</text>
             <text x="50" y="73" text-anchor="middle" font-size="2.15" fill="#edae6d" style="font-family: Georgia, serif;">Majority: ${maj}</text>
             <text x="90" y="73" text-anchor="end" font-size="2.15" fill="#edae6d" style="font-family: Georgia, serif;">Rendered Chamber</text>
