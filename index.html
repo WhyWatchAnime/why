@@ -931,7 +931,8 @@ function makeCoalitions(parties, totalSeats) {
     function getDerived() {
       const lowerAssigned = roundSeatShares(state.parties, state.lowerHouse.totalSeats, state.roundingMethod, state.thresholdConfig);
       const upperBaseParties = state.upperSeparate ? (state.upperParties.length ? state.upperParties : state.parties) : state.parties;
-      const upperAssigned = roundSeatShares(upperBaseParties, state.upperHouse.totalSeats, state.roundingMethod, state.thresholdConfig);
+      const upperBiasedParties = transformUpperHouseValues(upperBaseParties, state.upperHouseSystem || "proportional");
+      const upperAssigned = roundSeatShares(upperBiasedParties, state.upperHouse.totalSeats, state.roundingMethod, state.thresholdConfig);
       const displayParties = ideologyOrderedAssignments(lowerAssigned.map(p => ({ ...p })), state.sortStrength);
       const displayUpperParties = ideologyOrderedAssignments(upperAssigned.map(p => ({ ...p })), state.sortStrength);
       const coalitions = makeCoalitions(displayParties, state.lowerHouse.totalSeats);
@@ -1395,6 +1396,9 @@ function saveSnapshot() {
     }
 
     function createBudgetBill() {
+      const summary = Object.entries(state.budgetPlan || {})
+        .map(([k,v]) => `${k}:${v > 0 ? "up" : v < 0 ? "down" : "hold"}`)
+        .join(", ");
       state.pendingBills.unshift({
         id: crypto.randomUUID(),
         title: `Budget ${document.getElementById("timelineDate").value || state.defaultDate}`,
@@ -1403,7 +1407,8 @@ function saveSnapshot() {
         coalition: "Ministry budget",
         billType: "budget",
         majorityRule: "all-members",
-        budgetPlan: { ...(state.budgetPlan || {}) }
+        budgetPlan: { ...(state.budgetPlan || {}) },
+        summary
       });
       state.chamberActionResult = "Budget bill created and added to pending bills.";
       render();
@@ -1476,18 +1481,24 @@ function saveSnapshot() {
     function renderPendingBills() {
       const root = document.getElementById("pendingBillsList");
       const sel = document.getElementById("pendingBillSelect");
+      const pending = state.pendingBills || [];
       if (sel) {
-        sel.innerHTML = `<option value="">Select a bill</option>` + (state.pendingBills || []).map(b => `<option value="${b.id}">${escapeXml(b.title)} · ${escapeXml(b.billType || "ordinary")}</option>`).join("");
+        sel.innerHTML = `<option value="">Select a bill</option>` + pending.map(b => `<option value="${b.id}">${escapeXml(b.title)} · ${escapeXml(b.billType || "ordinary")}</option>`).join("");
       }
       if (!root) return;
-      root.innerHTML = (state.pendingBills || []).length ? (state.pendingBills || []).map(b => `
+      if (!pending.length) {
+        root.innerHTML = `<div class="small">No pending bills yet. Create one in the Bills tab.</div>`;
+        return;
+      }
+      root.innerHTML = pending.map(b => `
         <div class="bill-item fade-in">
           <div class="title-row"><div><strong>${escapeXml(b.title)}</strong> <span class="pill">${escapeXml(b.billType || "ordinary")}</span></div><div class="small">${escapeXml(b.date)} · ${escapeXml(b.house)}</div></div>
           <div class="small" style="margin-top:6px">${escapeXml(b.coalition || "")} · ${escapeXml(b.majorityRule || "votes-cast")}</div>
+          ${b.summary ? `<div class="small" style="margin-top:6px">${escapeXml(b.summary)}</div>` : ``}
           <div style="margin-top:8px"><button class="btn" data-del-pending="${b.id}" style="width:auto">Delete pending bill</button></div>
-        </div>`).join("") : `<div class="small">No pending bills yet. Create one in the Bills tab.</div>`;
+        </div>`).join("");
       root.querySelectorAll("[data-del-pending]").forEach(btn => btn.addEventListener("click", () => {
-        state.pendingBills = state.pendingBills.filter(x => x.id !== btn.dataset.delPending);
+        state.pendingBills = pending.filter(x => x.id !== btn.dataset.delPending);
         render();
       }));
     }
@@ -1495,10 +1506,17 @@ function saveSnapshot() {
     function renderBudgetForecast(displayParties) {
       const root = document.getElementById("budgetForecast");
       if (!root) return;
-      root.innerHTML = displayParties.map(p => {
+      const rows = displayParties.map(p => {
         const f = budgetForecastForParty(p);
-        return `<div class="small" style="margin-bottom:6px;">${escapeXml(p.name)}: <strong>${f.vote.toUpperCase()}</strong> (${f.score >= 0 ? "+" : ""}${f.score})</div>`;
-      }).join("");
+        return { name: p.name, seats: p.seats, vote: f.vote, score: f.score };
+      });
+      const yesSeats = rows.filter(r => r.vote === "yes").reduce((s,r)=>s+r.seats,0);
+      const noSeats = rows.filter(r => r.vote === "no").reduce((s,r)=>s+r.seats,0);
+      const abstainSeats = rows.filter(r => r.vote === "abstain").reduce((s,r)=>s+r.seats,0);
+      root.innerHTML = `
+        <div class="small" style="margin-bottom:8px;">Forecast: YES ${yesSeats} · NO ${noSeats} · ABSTAIN ${abstainSeats}</div>
+        ${rows.map(r => `<div class="small" style="margin-bottom:6px;">${escapeXml(r.name)}: <strong>${r.vote.toUpperCase()}</strong> (${r.score >= 0 ? "+" : ""}${r.score}) · ${r.seats} seats</div>`).join("")}
+      `;
     }
 
 function renderBills() {
@@ -1609,7 +1627,18 @@ function renderRecentBills() {
       set("majorityRule", state.majorityRule);
       set("ministryName", state.ministryName);
       set("primeMinister", state.primeMinister);
+      set("presidentName", state.presidentName);
       set("governmentType", state.governmentType);
+      set("upperHouseSystem", state.upperHouseSystem);
+      set("budgetMilitary", (state.budgetPlan || {}).military ?? 0);
+      set("budgetWelfare", (state.budgetPlan || {}).welfare ?? 0);
+      set("budgetInfrastructure", (state.budgetPlan || {}).infrastructure ?? 0);
+      set("budgetChurch", (state.budgetPlan || {}).church ?? 0);
+      set("budgetTariffs", (state.budgetPlan || {}).tariffs ?? 0);
+      set("budgetEducation", (state.budgetPlan || {}).education ?? 0);
+      set("budgetDebt", (state.budgetPlan || {}).debt ?? 0);
+      set("budgetColonial", (state.budgetPlan || {}).colonial ?? 0);
+      set("budgetAgriculture", (state.budgetPlan || {}).agriculture ?? 0);
       set("houseType", state.houseType);
       set("upperHouseType", state.upperHouseType);
       set("lowerHouseName", state.lowerHouse.houseName);
@@ -1704,16 +1733,20 @@ function renderRecentBills() {
       });
 
       renderLegend(document.getElementById("lowerLegend"), d.displayParties);
-      renderLegend(document.getElementById("upperLegend"), d.upperAssigned);
+      renderLegend(document.getElementById("upperLegend"), d.displayUpperParties);
       renderLegend(document.getElementById("presentationLegend"), d.displayParties);
       renderPartyEditor(d.displayParties);
       renderCoalitionZones(d.displayParties);
+      renderSupportAgreements(d.displayParties);
       renderLeaderSelects(d.displayParties);
       renderCoalitions(d.coalitions);
+      renderBudgetForecast(d.displayParties);
+      renderPendingBills();
       renderTimeline();
       renderHistory();
       renderBills();
       renderRecentBills();
+      setupSeatTooltips();
     }
 
     bindControls();
