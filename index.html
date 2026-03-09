@@ -383,7 +383,7 @@
                 <div><label>Upper house name</label><input id="upperHouseName" /></div>
                 <div><label>Upper house seats</label><input id="upperHouseSeats" type="number" min="1" /></div>
               </div>
-              <div style="margin-top:12px;"><label>Upper house chamber form</label><select id="upperHouseType"><option value="semicircle">Semicircle</option><option value="horseshoe">Horseshoe</option><option value="westminster">Confrontational benches</option><option value="circular">Circular chamber</option></select></div><div class="title-row" style="margin-top:12px;"><label style="margin:0;">Use separate upper-house results</label><input id="upperSeparate" type="checkbox" style="width:auto;" /></div><div id="upperInputWrap" class="hidden" style="margin-top:12px;"><label>Upper-house party rows</label><textarea id="upperRawInput" style="min-height:120px;"></textarea><div class="btns" style="margin-top:8px;"><button class="btn" id="parseUpperBtn" style="width:auto;">Parse upper-house text</button></div></div></div>
+              <div style="margin-top:12px;"><label>Upper house chamber form</label><select id="upperHouseType"><option value="semicircle">Semicircle</option><option value="horseshoe">Horseshoe</option><option value="westminster">Confrontational benches</option><option value="circular">Circular chamber</option></select></div><div style="margin-top:12px;"><label>Upper house seat bias</label><select id="upperHouseSystem"><option value="proportional">Proportional</option><option value="large-party-bias">Large-party bias</option><option value="small-party-bias">Small-party bias</option></select></div><div class="title-row" style="margin-top:12px;"><label style="margin:0;">Use separate upper-house results</label><input id="upperSeparate" type="checkbox" style="width:auto;" /></div><div id="upperInputWrap" class="hidden" style="margin-top:12px;"><label>Upper-house party rows</label><textarea id="upperRawInput" style="min-height:120px;"></textarea><div class="btns" style="margin-top:8px;"><button class="btn" id="parseUpperBtn" style="width:auto;">Parse upper-house text</button></div></div></div>
             <div class="title-row" style="margin-top:12px;"><label style="margin:0;">Show speaker stool / rostrum</label><input id="showSpeaker" type="checkbox" style="width:auto;" /></div>
             <div style="margin-top:14px;"><label>Paste party rows</label><textarea id="rawInput"></textarea><div class="mini">Use rows like “Party, 23”.</div></div>
             <div class="btns" style="margin-top:12px;">
@@ -461,7 +461,11 @@
         <div class="row three">
           <div><label>Ministry name</label><input id="ministryName"></div>
           <div><label>Prime minister</label><input id="primeMinister"></div>
+          <div><label>President / head of state</label><input id="presidentName"></div>
+        </div>
+        <div class="row three" style="margin-top:12px;">
           <div><label>Government type</label><select id="governmentType"><option value="coalition">Coalition</option><option value="single-party">Single-party</option><option value="minority">Minority</option><option value="caretaker">Caretaker</option></select></div>
+          <div></div><div></div>
         </div>
         <div style="margin-top:12px" class="small" id="stabilityScore"></div>
       </div>
@@ -508,6 +512,11 @@
           <div><label>Tariffs</label><select id="budgetTariffs"><option value="-1">Lower</option><option value="0">Maintain</option><option value="1">Raise</option></select></div>
           <div><label>Education</label><select id="budgetEducation"><option value="-1">Decrease</option><option value="0">Maintain</option><option value="1">Increase</option></select></div>
         </div>
+        <div class="row three" style="margin-top:12px;">
+          <div><label>Debt repayment</label><select id="budgetDebt"><option value="-1">Cut</option><option value="0">Maintain</option><option value="1">Increase</option></select></div>
+          <div><label>Colonial spending</label><select id="budgetColonial"><option value="-1">Decrease</option><option value="0">Maintain</option><option value="1">Increase</option></select></div>
+          <div><label>Agricultural supports</label><select id="budgetAgriculture"><option value="-1">Decrease</option><option value="0">Maintain</option><option value="1">Increase</option></select></div>
+        </div>
         <div class="btns" style="margin-top:12px;"><button class="btn" id="createBudgetBillBtn" style="width:auto;">Create budget bill</button></div>
         <div id="budgetForecast" class="small" style="margin-top:10px;"></div>
       </div>
@@ -529,9 +538,9 @@
           <div><label>Date</label><input id="billDate" type="date" /></div>
           <div><label>House</label><input id="billHouse" /></div>
           <div><label>Coalition / sponsor</label><select id="billCoalition"></select></div>
-          <div><button id="addBillBtn">Simulate and add bill</button></div>
+          <div><button id="addBillBtn">Create pending bill</button></div>
         </div>
-        <div class="small" style="margin-top:10px;">Bills created here are pending until you put them to a vote from Chamber view.</div><div id="pendingBillsList" style="margin-top:12px;"></div><h2 style="margin-top:16px;">Passed and failed votes</h2><div id="billList" style="margin-top:12px;"></div>
+        <div class="small" style="margin-top:10px;">Bills created here are pending only. They are not voted until you choose them in Chamber view and click “Put bill to vote”.</div><div id="pendingBillsList" style="margin-top:12px;"></div><h2 style="margin-top:16px;">Passed and failed votes</h2><div id="billList" style="margin-top:12px;"></div>
       </div>
     </section>
   </div>
@@ -564,12 +573,14 @@
       majorityRule: "votes-cast",
       ministryName: "First Ministry",
       primeMinister: "",
+      presidentName: "",
       governmentType: "coalition",
       supportAgreements: {},
       defaultDate: "1836-01-01",
-      budgetPlan: { military:0, welfare:0, infrastructure:0, church:0, tariffs:0, education:0 },
+      budgetPlan: { military:0, welfare:0, infrastructure:0, church:0, tariffs:0, education:0, debt:0, colonial:0, agriculture:0 },
       pendingBills: [],
       upperSeparate: false,
+      upperHouseSystem: "proportional",
       upperRawInput: "",
       upperParties: [],
       chamberActionResult: "",
@@ -641,6 +652,17 @@
     function majority(totalSeats) { return Math.floor(totalSeats / 2) + 1; }
 
     
+    
+    function transformUpperHouseValues(parties, system) {
+      return (parties || []).map(p => {
+        const v = Number(p.value || 0);
+        let adjusted = v;
+        if (system === "large-party-bias") adjusted = Math.pow(v, 1.18);
+        else if (system === "small-party-bias") adjusted = Math.pow(Math.max(v, 0), 0.82);
+        return { ...p, value: adjusted, originalValue: v };
+      });
+    }
+
     function supportLevelForParty(partyId) {
       return state.supportAgreements?.[partyId] || "none";
     }
@@ -664,13 +686,17 @@
         if (disliked && v === -1) score += 2;
       };
 
-      if (preset.includes("conservative") || tags.has("conservative")) { pref("military", true, false); pref("welfare", false, true); pref("church", true, false); pref("tariffs", true, false) }
-      if (preset.includes("liberal") || tags.has("liberal")) { pref("infrastructure", true, false); pref("tariffs", false, true); pref("education", true, false) }
-      if (preset.includes("agrarian") || tags.has("agrarian") || tags.has("rural")) { pref("tariffs", true, false); pref("infrastructure", true, false) }
-      if (preset.includes("socialist") || tags.has("socialist") || tags.has("labor") || tags.has("social democrat")) { pref("welfare", true, false); pref("education", true, false); pref("military", false, true) }
-      if (preset.includes("clerical") || tags.has("clerical") || tags.has("religious")) { pref("church", true, false) }
-      if (preset.includes("reactionary") || tags.has("reactionary")) { pref("church", true, false); pref("military", true, false); pref("welfare", false, true) }
-      if (preset.includes("radical") || tags.has("radical")) { pref("church", false, true); pref("education", true, false) }
+      if (preset.includes("conservative") || tags.has("conservative")) { pref("military", true, false); pref("welfare", false, true); pref("church", true, false); pref("tariffs", true, false); pref("debt", true, false); }
+      if (preset.includes("liberal") || tags.has("liberal")) { pref("infrastructure", true, false); pref("tariffs", false, true); pref("education", true, false); pref("debt", true, false); }
+      if (preset.includes("agrarian") || tags.has("agrarian") || tags.has("rural")) { pref("tariffs", true, false); pref("agriculture", true, false); pref("infrastructure", true, false); }
+      if (preset.includes("socialist") || tags.has("socialist") || tags.has("labor") || tags.has("social democrat")) { pref("welfare", true, false); pref("education", true, false); pref("military", false, true); pref("agriculture", false, true); }
+      if (preset.includes("clerical") || tags.has("clerical") || tags.has("religious")) { pref("church", true, false); pref("education", false, true); }
+      if (preset.includes("reactionary") || tags.has("reactionary")) { pref("church", true, false); pref("military", true, false); pref("welfare", false, true); pref("colonial", true, false); }
+      if (preset.includes("radical") || tags.has("radical")) { pref("church", false, true); pref("education", true, false); pref("debt", false, true); }
+      if (tags.has("free trade")) pref("tariffs", false, true);
+      if (tags.has("protectionist")) pref("tariffs", true, false);
+      if (tags.has("colonial")) pref("colonial", true, false);
+      if (tags.has("anti-colonial")) pref("colonial", false, true);
       return score;
     }
 
@@ -987,7 +1013,9 @@ function makeCoalitions(parties, totalSeats) {
         majorityRule: "majorityRule",
         ministryName: "ministryName",
         primeMinister: "primeMinister",
+        presidentName: "presidentName",
         governmentType: "governmentType",
+        upperHouseSystem: "upperHouseSystem",
         houseType: "houseType",
         upperHouseType: "upperHouseType",
         lowerHouseName: ["lowerHouse","houseName"],
@@ -1034,7 +1062,7 @@ function makeCoalitions(parties, totalSeats) {
 
       document.getElementById("putBillToVoteBtn").addEventListener("click", putSelectedBillToVote);
       document.getElementById("createBudgetBillBtn").addEventListener("click", createBudgetBill);
-      ["budgetMilitary","budgetWelfare","budgetInfrastructure","budgetChurch","budgetTariffs","budgetEducation"].forEach(id => {
+      ["budgetMilitary","budgetWelfare","budgetInfrastructure","budgetChurch","budgetTariffs","budgetEducation","budgetDebt","budgetColonial","budgetAgriculture"].forEach(id => {
         document.getElementById(id).addEventListener("change", e => {
           const key = id.replace("budget","").toLowerCase();
           if (!state.budgetPlan) state.budgetPlan = {};
@@ -1080,8 +1108,23 @@ function makeCoalitions(parties, totalSeats) {
     function parseUpperIntoParties() {
       const parsed = parseLooseInput(state.upperRawInput || "");
       const existing = state.upperParties || [];
+      const lowerByName = new Map((state.parties || []).map(p => [String(p.name).toLowerCase(), p]));
       if (parsed.length) {
-        state.upperParties = parsed.map((p, i) => ({ ...p, ideology: existing[i]?.ideology ?? 50, bloc: existing[i]?.bloc ?? "Independent", whip: existing[i]?.whip ?? 75, labels: existing[i]?.labels ?? [], tags: existing[i]?.tags ?? [] }));
+        state.upperParties = parsed.map((p, i) => {
+          const lower = lowerByName.get(String(p.name).toLowerCase());
+          const prev = existing.find(x => String(x.name).toLowerCase() === String(p.name).toLowerCase()) || existing[i];
+          return {
+            ...p,
+            id: lower?.id || prev?.id || p.id,
+            color: lower?.color || prev?.color || p.color,
+            ideology: lower?.ideology ?? prev?.ideology ?? 50,
+            bloc: lower?.bloc ?? prev?.bloc ?? "Independent",
+            whip: lower?.whip ?? prev?.whip ?? 75,
+            labels: prev?.labels ?? [],
+            tags: lower?.tags ?? prev?.tags ?? [],
+            preset: lower?.preset ?? prev?.preset ?? "custom"
+          };
+        });
         document.getElementById("importMessage").textContent = `Imported ${parsed.length} upper-house parties.`;
       } else {
         document.getElementById("importMessage").textContent = "No readable upper-house rows found.";
@@ -1090,12 +1133,16 @@ function makeCoalitions(parties, totalSeats) {
     }
 
 function saveSnapshot() {
+      const currentSvg = document.querySelector("#lowerChamber svg");
+      const image = currentSvg ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(currentSvg.outerHTML)}` : "";
       state.snapshots.unshift({
         id: crypto.randomUUID(),
         date: new Date().toLocaleString(),
         name: state.parliamentName,
+        image,
         exported: structuredClone(state),
       });
+      state.timeline.unshift({ id: crypto.randomUUID(), date: document.getElementById("timelineDate").value || state.defaultDate, type: "session", title: `Saved parliament: ${state.parliamentName}`, description: "Parliament snapshot saved.", chamber: state.lowerHouse.houseName, image });
       render();
     }
 
@@ -1308,8 +1355,9 @@ function saveSnapshot() {
       const root = document.getElementById("timelineList");
       const ordered = [...state.timeline].sort((a,b) => String(a.date).localeCompare(String(b.date)));
       root.innerHTML = ordered.map(item => `
-        <div class="timeline-item">
+        <div class="timeline-item fade-in">
           <div class="title-row"><div><strong>${escapeXml(item.title)}</strong> <span class="pill">${escapeXml(item.type)}</span></div><div class="mini">${escapeXml(item.date)} · ${escapeXml(item.chamber)}</div></div>
+          ${item.image ? `<div style="margin-top:10px;"><img src="${item.image}" alt="parliament snapshot" style="max-width:240px;border:1px solid var(--line);border-radius:12px;"></div>` : ``}
           <div style="margin-top:8px;">${escapeXml(item.description || "")}</div>
           <div class="btns" style="margin-top:8px;"><button data-del-timeline="${item.id}" style="width:auto;">Delete</button></div>
         </div>`).join("");
@@ -1432,12 +1480,12 @@ function saveSnapshot() {
         sel.innerHTML = `<option value="">Select a bill</option>` + (state.pendingBills || []).map(b => `<option value="${b.id}">${escapeXml(b.title)} · ${escapeXml(b.billType || "ordinary")}</option>`).join("");
       }
       if (!root) return;
-      root.innerHTML = (state.pendingBills || []).map(b => `
+      root.innerHTML = (state.pendingBills || []).length ? (state.pendingBills || []).map(b => `
         <div class="bill-item fade-in">
           <div class="title-row"><div><strong>${escapeXml(b.title)}</strong> <span class="pill">${escapeXml(b.billType || "ordinary")}</span></div><div class="small">${escapeXml(b.date)} · ${escapeXml(b.house)}</div></div>
           <div class="small" style="margin-top:6px">${escapeXml(b.coalition || "")} · ${escapeXml(b.majorityRule || "votes-cast")}</div>
           <div style="margin-top:8px"><button class="btn" data-del-pending="${b.id}" style="width:auto">Delete pending bill</button></div>
-        </div>`).join("");
+        </div>`).join("") : `<div class="small">No pending bills yet. Create one in the Bills tab.</div>`;
       root.querySelectorAll("[data-del-pending]").forEach(btn => btn.addEventListener("click", () => {
         state.pendingBills = state.pendingBills.filter(x => x.id !== btn.dataset.delPending);
         render();
@@ -1447,11 +1495,10 @@ function saveSnapshot() {
     function renderBudgetForecast(displayParties) {
       const root = document.getElementById("budgetForecast");
       if (!root) return;
-      const lines = displayParties.map(p => {
+      root.innerHTML = displayParties.map(p => {
         const f = budgetForecastForParty(p);
-        return `${p.name}: ${f.vote.toUpperCase()} (${f.score >= 0 ? "+" : ""}${f.score})`;
-      });
-      root.textContent = lines.join(" · ");
+        return `<div class="small" style="margin-bottom:6px;">${escapeXml(p.name)}: <strong>${f.vote.toUpperCase()}</strong> (${f.score >= 0 ? "+" : ""}${f.score})</div>`;
+      }).join("");
     }
 
 function renderBills() {
