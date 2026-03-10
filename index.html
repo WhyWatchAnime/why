@@ -427,7 +427,7 @@
     <section id="tab-chamber" class="tab-panel hidden">
       <div class="presentation-grid">
         <div>
-          <div class="card large-chamber"><div class="title-row"><div><h2>Chamber view</h2><p class="muted">Large-format chamber display.</p></div><div class="btns"><button class="btn" id="exportSvgBtn" style="width:auto;">Export SVG</button></div></div><div class="action-grid" style="margin-bottom:12px;"><button class="btn" id="confidenceBtn">Motion of confidence</button><button class="btn" id="budgetBtn">Budget vote</button><button class="btn" id="dissolutionBtn">Dissolution threat</button><button class="btn" id="formGovBtn">Form government</button></div><div class="row two" style="margin-bottom:12px;"><div><label>Pending bill</label><select id="pendingBillSelect"></select></div><div style="display:flex;align-items:end;"><button class="btn" id="putBillToVoteBtn" style="width:100%;">Put bill to vote</button></div></div><div class="small" style="margin-bottom:8px;">Support agreements count for confidence votes, and budget agreements count for budget votes.</div><div id="chamberActionResult" class="small" style="margin-bottom:10px;"></div><div id="presentationLower"></div><div id="presentationUpperWrap" class="hidden" style="margin-top:18px;"><div id="presentationUpper"></div></div></div>
+          <div class="card large-chamber"><div class="title-row"><div><h2>Chamber view</h2><p class="muted">Large-format chamber display.</p></div><div class="btns"><button class="btn" id="exportSvgBtn" style="width:auto;">Export SVG</button></div></div><div class="action-grid" style="margin-bottom:12px;"><button class="btn" id="confidenceBtn">Motion of confidence</button><button class="btn" id="budgetBtn">Budget vote</button><button class="btn" id="dissolutionBtn">Dissolution threat</button><button class="btn" id="formGovBtn">Form government</button></div><div class="row two" style="margin-bottom:12px;"><div><label>Pending bill</label><select id="pendingBillSelect"></select></div><div style="display:flex;align-items:end;"><button class="btn" id="putBillToVoteBtn" style="width:100%;">Put bill to vote</button></div></div><div class="small" style="margin-bottom:8px;">Support agreements count for confidence votes, and budget agreements count for budget votes.</div><div id="chamberActionResult" class="small" style="margin-bottom:10px;"></div><div id="voteVisual"></div><div id="presentationLower"></div><div id="presentationUpperWrap" class="hidden" style="margin-top:18px;"><div id="presentationUpper"></div></div></div>
         </div>
         <div>
           <div class="card"><h2>Seat legend</h2><div id="presentationLegend"></div></div>
@@ -546,6 +546,7 @@
   </div>
   <div id="seatTooltip" class="tooltip"></div>
   <div id="seatTooltip" class="seat-tooltip"></div>
+  <div id="seatTooltip" class="seat-tooltip"></div>
 
   <script>
     const HOUSE_PRESETS = {
@@ -579,6 +580,9 @@
       defaultDate: "1836-01-01",
       budgetPlan: { military:0, welfare:0, infrastructure:0, church:0, tariffs:0, education:0, debt:0, colonial:0, agriculture:0 },
       pendingBills: [],
+      billDraftDate: "1836-01-01",
+      timelineDraftDate: "1836-01-01",
+      lastVoteResult: null,
       upperSeparate: false,
       upperHouseSystem: "proportional",
       upperRawInput: "",
@@ -731,6 +735,46 @@
       const td = document.getElementById("timelineDate");
       if (bd && (!bd.value || bd.value > "1900-01-01")) bd.value = state.defaultDate || "1836-01-01";
       if (td && (!td.value || td.value > "1900-01-01")) td.value = state.defaultDate || "1836-01-01";
+    }
+
+    
+    function currentChamberImage(selector) {
+      const svg = document.querySelector(selector);
+      return svg ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.outerHTML)}` : "";
+    }
+
+    function currentParliamentSnapshot() {
+      return currentChamberImage("#lowerChamber svg");
+    }
+
+    function currentUpperSnapshot() {
+      return currentChamberImage("#upperChamber svg");
+    }
+
+    function makeTimelineEntryWithImage(entry, which="lower") {
+      const image = which === "upper" ? currentUpperSnapshot() : currentParliamentSnapshot();
+      return { ...entry, image };
+    }
+
+    function renderVoteVisual() {
+      const root = document.getElementById("voteVisual");
+      if (!root) return;
+      const v = state.lastVoteResult;
+      if (!v) { root.innerHTML = ""; return; }
+      const total = Math.max(1, Number(v.totalSeats || 0));
+      const block = (label, value, cls) => `
+        <div class="vote-row">
+          <div class="vote-label"><span>${label}</span><span>${value}</span></div>
+          <div class="vote-track"><div class="vote-fill ${cls}" style="width:${(value/total)*100}%"></div></div>
+        </div>`;
+      root.innerHTML = `
+        <div class="vote-panel fade-in">
+          <div class="title-row"><strong>${escapeXml(v.houseLabel)} vote</strong><span class="pill ${v.status === "Passed" ? "pass" : "fail"}">${escapeXml(v.status)}</span></div>
+          <div class="small" style="margin-top:6px;">${escapeXml(v.title || "")}${v.threshold ? ` · threshold ${v.threshold}` : ""}</div>
+          ${block("Yes", v.yes || 0, "vote-yes")}
+          ${block("No", v.no || 0, "vote-no")}
+          ${block("Abstain", v.abstain || 0, "vote-abstain")}
+        </div>`;
     }
 
     function parseLooseInput(text) {
@@ -1077,10 +1121,12 @@ function makeCoalitions(parties, totalSeats) {
       document.getElementById("governmentLeaderSelect").addEventListener("change", e => { state.governmentLeaderId = e.target.value || ""; render(); });
       document.getElementById("oppositionLeaderSelect").addEventListener("change", e => { state.oppositionLeaderId = e.target.value || ""; render(); });
 
-      document.getElementById("billDate").value = "1836-01-01";
-      document.getElementById("timelineDate").value = "1836-01-01";
+      document.getElementById("billDate").value = state.billDraftDate || "1836-01-01";
+      document.getElementById("timelineDate").value = state.timelineDraftDate || "1836-01-01";
       document.getElementById("billDate").min = "1836-01-01";
       document.getElementById("timelineDate").min = "1836-01-01";
+      document.getElementById("billDate").addEventListener("input", e => { state.billDraftDate = e.target.value || "1836-01-01"; });
+      document.getElementById("timelineDate").addEventListener("input", e => { state.timelineDraftDate = e.target.value || "1836-01-01"; });
     }
 
     function switchTab(name) {
@@ -1143,7 +1189,7 @@ function saveSnapshot() {
         image,
         exported: structuredClone(state),
       });
-      state.timeline.unshift({ id: crypto.randomUUID(), date: document.getElementById("timelineDate").value || state.defaultDate, type: "session", title: `Saved parliament: ${state.parliamentName}`, description: "Parliament snapshot saved.", chamber: state.lowerHouse.houseName, image });
+      state.timeline.unshift({ id: crypto.randomUUID(), date: document.getElementById("timelineDate").value || state.timelineDraftDate || state.defaultDate, type: "session", title: `Saved parliament: ${state.parliamentName}`, description: "Parliament snapshot saved.", chamber: state.lowerHouse.houseName, image });
       render();
     }
 
@@ -1382,7 +1428,7 @@ function saveSnapshot() {
     function createPendingBillFromForm() {
       const title = document.getElementById("billTitle").value.trim();
       if (!title) return;
-      const date = document.getElementById("billDate").value || state.defaultDate;
+      const date = document.getElementById("billDate").value || state.billDraftDate || state.defaultDate;
       const house = document.getElementById("billHouse").value.trim() || state.lowerHouse.houseName;
       const coalition = document.getElementById("billCoalition").value || "";
       state.pendingBills.unshift({
@@ -1402,7 +1448,7 @@ function saveSnapshot() {
       state.pendingBills.unshift({
         id: crypto.randomUUID(),
         title: `Budget ${document.getElementById("timelineDate").value || state.defaultDate}`,
-        date: document.getElementById("timelineDate").value || state.defaultDate,
+        date: document.getElementById("timelineDate").value || state.timelineDraftDate || state.defaultDate,
         house: state.lowerHouse.houseName,
         coalition: "Ministry budget",
         billType: "budget",
@@ -1470,11 +1516,59 @@ function saveSnapshot() {
         render();
         return;
       }
-      const vote = simulateVoteForPendingBill(bill);
-      state.bills.unshift({ ...bill, ...vote });
-      state.timeline.unshift({ id: crypto.randomUUID(), date: bill.date || state.defaultDate, type: "bill", title: bill.title, description: `${vote.status} (${vote.yes}-${vote.no}, abst. ${vote.abstain})`, chamber: bill.house });
+
+      const lowerVote = simulateVoteForPendingBill(bill);
+      state.bills.unshift({ ...bill, ...lowerVote, house: bill.house || state.lowerHouse.houseName });
+      state.lastVoteResult = { ...lowerVote, houseLabel: state.lowerHouse.houseName, title: bill.title, totalSeats: state.lowerHouse.totalSeats };
+      state.timeline.unshift(makeTimelineEntryWithImage({
+        id: crypto.randomUUID(),
+        date: bill.date || state.billDraftDate || state.defaultDate,
+        type: "bill",
+        title: `${bill.title} — ${state.lowerHouse.houseName}`,
+        description: `${lowerVote.status} (${lowerVote.yes}-${lowerVote.no}, abst. ${lowerVote.abstain})`,
+        chamber: state.lowerHouse.houseName
+      }, "lower"));
+
+      let resultText = `${bill.title}: ${lowerVote.status} in ${state.lowerHouse.houseName} with ${lowerVote.yes} yes, ${lowerVote.no} no, ${lowerVote.abstain} abstentions.`;
+
+      if (lowerVote.status === "Passed" && state.upperEnabled) {
+        const upperBill = { ...bill, house: state.upperHouse.houseName };
+        const upperDisplay = getDerived().displayUpperParties || [];
+        let yes = 0, no = 0, abstain = 0;
+        for (const party of upperDisplay) {
+          const seats = Number(party.seats || 0);
+          if (!seats) continue;
+          const discipline = Number(party.whip || 75) / 100;
+          let partyYes = 0, partyNo = 0, partyAbstain = 0;
+          if (upperBill.billType === "budget") {
+            partyYes = Math.round(seats * (0.45 + discipline * 0.18));
+          } else {
+            if ((party.ideology || 50) >= 45 && (party.ideology || 50) <= 65) partyYes = Math.round(seats * (0.45 + discipline * 0.2));
+            else if ((party.ideology || 50) < 45) partyYes = Math.round(seats * 0.35);
+            else partyYes = Math.round(seats * 0.4);
+          }
+          const used = partyYes + partyAbstain;
+          partyNo = Math.max(0, seats - used);
+          yes += partyYes; no += partyNo; abstain += partyAbstain;
+        }
+        const threshold = voteThreshold(upperBill.majorityRule || "votes-cast", state.upperHouse.totalSeats, yes + no);
+        const status = yes >= threshold ? "Passed" : "Failed";
+        const upperVote = { yes, no, abstain, threshold, status };
+        state.bills.unshift({ ...upperBill, ...upperVote });
+        state.timeline.unshift(makeTimelineEntryWithImage({
+          id: crypto.randomUUID(),
+          date: bill.date || state.billDraftDate || state.defaultDate,
+          type: "bill",
+          title: `${bill.title} — ${state.upperHouse.houseName}`,
+          description: `${upperVote.status} (${upperVote.yes}-${upperVote.no}, abst. ${upperVote.abstain})`,
+          chamber: state.upperHouse.houseName
+        }, "upper"));
+        state.lastVoteResult = { ...upperVote, houseLabel: state.upperHouse.houseName, title: bill.title, totalSeats: state.upperHouse.totalSeats };
+        resultText += ` Then ${upperVote.status} in ${state.upperHouse.houseName} with ${upperVote.yes} yes, ${upperVote.no} no, ${upperVote.abstain} abstentions.`;
+      }
+
       state.pendingBills = state.pendingBills.filter(b => b.id !== id);
-      state.chamberActionResult = `${bill.title}: ${vote.status} with ${vote.yes} yes, ${vote.no} no, ${vote.abstain} abstentions.`;
+      state.chamberActionResult = resultText;
       render();
     }
 
@@ -1572,7 +1666,7 @@ function renderBills() {
         else if(ok) state.governmentType = "coalition";
       }
       state.chamberActionResult = `${title}: ${description}`;
-      state.timeline.unshift({ id: crypto.randomUUID(), date: document.getElementById("timelineDate").value || state.defaultDate, type: kind === "budget" ? "bill" : "government", title, description, chamber: state.lowerHouse.houseName });
+      state.timeline.unshift({ id: crypto.randomUUID(), date: document.getElementById("timelineDate").value || state.timelineDraftDate || state.defaultDate, type: kind === "budget" ? "bill" : "government", title, description, chamber: state.lowerHouse.houseName });
       render();
     }
 
@@ -1662,8 +1756,8 @@ function renderRecentBills() {
       document.getElementById("upperPanel").classList.toggle("hidden", !state.upperEnabled);
       document.getElementById("presentationUpperWrap").classList.toggle("hidden", !state.upperEnabled);
       document.getElementById("upperInputWrap").classList.toggle("hidden", !(state.upperEnabled && state.upperSeparate));
-      document.getElementById("billDate").value = state.defaultDate || "1836-01-01";
-      document.getElementById("timelineDate").value = state.defaultDate || "1836-01-01";
+      document.getElementById("billDate").value = state.billDraftDate || state.defaultDate || "1836-01-01";
+      document.getElementById("timelineDate").value = state.timelineDraftDate || state.defaultDate || "1836-01-01";
       if (document.activeElement !== document.getElementById("billHouse") && !document.getElementById("billHouse").value) document.getElementById("billHouse").value = state.lowerHouse.houseName;
     }
 
@@ -1742,6 +1836,7 @@ function renderRecentBills() {
       renderCoalitions(d.coalitions);
       renderBudgetForecast(d.displayParties);
       renderPendingBills();
+      renderVoteVisual();
       renderTimeline();
       renderHistory();
       renderBills();
