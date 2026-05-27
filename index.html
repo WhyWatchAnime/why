@@ -15,13 +15,10 @@
             --gold-dim: #8a7030;
             --red: #b84c3b;
             --green: #5a8a6a;
-            --blue: #5a7a9a;
             --border: #3a3a42;
-            --accent: #6b5c3e;
             --font-heading: 'Georgia', 'Times New Roman', serif;
             --font-body: 'Segoe UI', system-ui, sans-serif;
             --radius: 8px;
-            --shadow: 0 4px 24px rgba(0,0,0,0.4);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -101,7 +98,7 @@
             border-radius: var(--radius);
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: var(--shadow);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
         }
         .card h2 {
             font-family: var(--font-heading);
@@ -113,36 +110,16 @@
             letter-spacing: 0.5px;
         }
         .card h3 { font-family: var(--font-heading); color: #c9b878; font-size: 1.05em; margin: 12px 0 8px; }
-
-        /* Parliament SVG container */
-        .parliament-svg-container {
-            background: #0f0f14;
+        .parliament-container {
+            background: #1a1a1f;
             border-radius: 12px;
-            overflow: hidden;
             border: 1px solid var(--border);
-            position: relative;
-            width: 100%;
-            max-width: 900px;
+            overflow: hidden;
+            max-width: 1000px;
             margin: 0 auto;
-            box-shadow: inset 0 0 60px rgba(201,168,76,0.08);
+            box-shadow: inset 0 0 80px rgba(0,0,0,0.5);
         }
-        .parliament-svg-container svg { width: 100%; height: auto; display: block; }
-
-        .seat-puck {
-            transition: all 0.3s ease;
-            cursor: pointer;
-            filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.6));
-        }
-        .seat-puck:hover {
-            filter: drop-shadow(0 0 8px rgba(255,255,200,0.9));
-            transform-origin: center;
-            transform-box: fill-box;
-            transform: scale(1.25);
-        }
-        .seat-puck.governing-glow {
-            filter: drop-shadow(0 0 8px rgba(255,220,100,0.8)) drop-shadow(1px 2px 3px rgba(0,0,0,0.6));
-        }
-
+        .parliament-container svg { width: 100%; height: auto; display: block; }
         .party-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
         .party-chip {
             display: flex;
@@ -158,17 +135,8 @@
             user-select: none;
         }
         .party-chip:hover { border-color: var(--gold-dim); }
-        .party-chip.governing {
-            border-color: var(--gold);
-            box-shadow: 0 0 10px rgba(201,168,76,0.3);
-        }
-        .party-chip .swatch {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-            flex-shrink: 0;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
+        .party-chip.governing { border-color: var(--gold); box-shadow: 0 0 10px rgba(201,168,76,0.3); }
+        .party-chip .swatch { width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.2); }
         .party-chip .seat-count { font-weight: bold; color: #fff; }
         .party-chip .party-name { color: var(--text2); }
         .btn {
@@ -201,23 +169,38 @@
             font-family: var(--font-body);
             font-size: 0.9em;
         }
-        input:focus, select:focus, textarea:focus { border-color: var(--gold); outline: none; }
         label { font-size: 0.85em; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; }
-
-        /* Timeline, report, gallery styles unchanged (omitted for brevity, but fully functional) */
+        /* Timeline */
         .timeline { position: relative; padding-left: 30px; }
         .timeline::before { content:''; position:absolute; left:10px; top:0; bottom:0; width:2px; background:var(--gold-dim); }
         .timeline-entry { position:relative; margin-bottom:20px; padding:14px 18px; background:var(--surface2); border-radius:var(--radius); border:1px solid var(--border); cursor:pointer; }
         .timeline-entry:hover { border-color: var(--gold-dim); }
         .timeline-entry::before { content:''; position:absolute; left:-24px; top:18px; width:10px; height:10px; border-radius:50%; background:var(--gold); border:2px solid var(--surface2); }
-        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:200; display:flex; align-items:center; justify-content:center; }
-        .modal { background:var(--surface2); border:1px solid var(--gold-dim); border-radius:var(--radius); padding:24px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; }
-        .toast { position:fixed; bottom:30px; right:30px; background:#2a2a32; border:1px solid var(--gold); color:var(--gold); padding:12px 20px; border-radius:20px; z-index:300; }
-
-        @media (max-width: 768px) {
-            .header { padding:10px; }
-            .nav-tab { padding:8px 10px; font-size:0.75em; }
+        /* Report */
+        .report-paper {
+            background: #faf8f2; color: #2a2418; padding: 40px 36px; border-radius: 4px;
+            font-family: 'Georgia', serif; max-width: 900px; margin: 0 auto;
+            box-shadow: 0 4px 32px rgba(0,0,0,0.5); border: 1px solid #d0c8b0;
         }
+        .report-header { text-align: center; border-bottom: 2px solid #c9a84c; padding-bottom: 16px; margin-bottom: 24px; }
+        .report-header .bank-name { font-size: 0.85em; text-transform: uppercase; letter-spacing: 3px; color: #6b5c3e; }
+        .report-header .report-title { font-size: 1.8em; color: #2a2418; margin: 6px 0; letter-spacing: 1px; }
+        .report-header .country-year { font-size: 1.3em; color: #8a7030; font-style: italic; }
+        .report-section { margin: 20px 0; }
+        .report-section h3 { color: #4a3820; border-bottom: 1px solid #d0c8b0; padding-bottom: 4px; }
+        .report-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        .report-table th, .report-table td { padding: 8px 12px; border-bottom: 1px solid #e0d8c8; text-align: left; }
+        .report-table th { background: #f0ece0; color: #4a3820; font-weight: bold; text-transform: uppercase; font-size: 0.8em; }
+        .report-table .num { text-align: right; font-family: 'Courier New', monospace; }
+        .report-footer { border-top: 1px solid #d0c8b0; margin-top: 30px; padding-top: 12px; font-size: 0.75em; color: #8a8070; text-align: center; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+        .gallery-item { border-radius: 8px; overflow: hidden; border: 2px solid var(--border); cursor: pointer; aspect-ratio: 16/10; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+        .upload-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; }
+        .upload-zone:hover { border-color: var(--gold); }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: center; justify-content: center; }
+        .modal { background: var(--surface2); border: 1px solid var(--gold-dim); border-radius: 8px; padding: 24px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .toast { position: fixed; bottom: 30px; right: 30px; background: #2a2a32; border: 1px solid var(--gold); color: var(--gold); padding: 12px 20px; border-radius: 20px; z-index: 300; }
     </style>
 </head>
 <body>
@@ -235,20 +218,20 @@
         <!-- Parliament Tab -->
         <div class="tab-content active" id="parliamentTab">
             <div class="card">
-                <h2>🏛️ Current Parliament</h2>
-                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
-                    <label style="margin:0;">Total Seats:</label>
+                <h2>🏛️ Parliament Chamber</h2>
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+                    <label>Total Seats:</label>
                     <input type="number" id="totalSeats" value="169" min="10" max="1000" step="1" style="width:80px;">
                     <button class="btn btn-sm" onclick="updateTotalSeats()">Apply</button>
-                    <span style="color:var(--text2);" id="seatSummary">169 seats | 0 unassigned</span>
-                    <button class="btn btn-sm" onclick="window.highlightParty(null)" style="margin-left:auto;">✨ Clear Highlight</button>
+                    <span style="color:var(--text2);" id="seatSummary">169 seats</span>
+                    <button class="btn btn-sm" onclick="highlightParty(null)" style="margin-left:auto;">✨ Clear Highlight</button>
                 </div>
-                <div class="parliament-svg-container">
-                    <svg id="parliamentSvg" viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg"></svg>
+                <div class="parliament-container">
+                    <svg id="parliamentSvg" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg"></svg>
                 </div>
             </div>
             <div class="card">
-                <h2>🎯 Parties & Seat Distribution</h2>
+                <h2>🎯 Parties</h2>
                 <div class="party-list" id="partyList"></div>
                 <div class="btn-row">
                     <button class="btn btn-primary" onclick="addParty()">+ Add Party</button>
@@ -256,42 +239,79 @@
                     <button class="btn" onclick="saveToHistory()">💾 Save to History</button>
                     <button class="btn btn-danger btn-sm" onclick="resetParliament()">Reset All</button>
                 </div>
-                <p style="font-size:0.8em;color:var(--text2);margin-top:8px;">💡 Click a party chip to toggle governing. Click a legend swatch below the chart to highlight that party.</p>
+                <p style="font-size:0.8em;color:var(--text2);margin-top:8px;">💡 Click a party chip to toggle governing. Click 🔍 to highlight only that party's MPs.</p>
             </div>
         </div>
-        <!-- Other tabs (history, economy, screenshots) unchanged structure, kept minimal for space -->
+
+        <!-- History Tab -->
         <div class="tab-content" id="historyTab">
-            <div class="card"><h2>📜 Government History</h2><div class="timeline" id="historyTimeline"><p>No saved governments yet.</p></div>
+            <div class="card"><h2>📜 Government History</h2><div class="timeline" id="historyTimeline"></div>
             <div class="btn-row"><button class="btn btn-danger btn-sm" onclick="clearHistory()">Clear</button><button class="btn btn-sm" onclick="exportHistory()">Export JSON</button></div></div>
         </div>
+
+        <!-- Economy Tab -->
         <div class="tab-content" id="economyTab">
-            <div class="card"><h2>📊 Economic Report</h2><p>Report generation (see full code below)</p></div>
+            <div class="card">
+                <h2>📊 Yearly Economic Report</h2>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+                    <div><label>Country</label><input type="text" id="ecoCountry" value="Great Britain"></div>
+                    <div><label>Year</label><input type="number" id="ecoYear" value="1890"></div>
+                    <div><label>GDP (£M)</label><input type="number" id="ecoGDP" value="24500"></div>
+                    <div><label>Growth (%)</label><input type="number" id="ecoGrowth" value="2.8"></div>
+                    <div><label>GDP per Capita (£)</label><input type="number" id="ecoGDPpc" value="620"></div>
+                    <div><label>Inflation (%)</label><input type="number" id="ecoInflation" value="1.4"></div>
+                    <div><label>Unemployment (%)</label><input type="number" id="ecoUnemp" value="4.2"></div>
+                    <div><label>Revenue (£M)</label><input type="number" id="ecoRevenue" value="3200"></div>
+                    <div><label>Expenditure (£M)</label><input type="number" id="ecoExpend" value="3450"></div>
+                    <div><label>Debt (£M)</label><input type="number" id="ecoDebt" value="18200"></div>
+                    <div><label>Trade Balance (£M)</label><input type="number" id="ecoTrade" value="-120"></div>
+                    <div><label>Gold Reserves (£M)</label><input type="number" id="ecoGold" value="840"></div>
+                </div>
+                <div style="margin-top:12px;"><label>Sectors (name,value per line)</label><textarea id="ecoSectors" rows="4">Manufacturing,8200&#10;Agriculture,3400&#10;Mining,2900&#10;Trade,5100&#10;Finance,2800</textarea></div>
+                <div style="margin-top:12px;"><label>Executive Summary</label><textarea id="ecoNotes" rows="3">Steady industrial expansion continues...</textarea></div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="generateReport()">📄 Generate Report</button>
+                    <button class="btn" onclick="printReport()">🖨️ Print</button>
+                    <button class="btn" onclick="saveEconomicReport()">💾 Save Report</button>
+                </div>
+            </div>
+            <div class="card print-card" id="reportContainer" style="display:none;"><h2>📄 Report</h2><div id="reportContent"></div></div>
+            <div class="card"><h2>📁 Saved Reports</h2><div id="savedReportsList"></div></div>
         </div>
+
+        <!-- Screenshots Tab -->
         <div class="tab-content" id="screenshotsTab">
-            <div class="card"><h2>🖼️ Screenshots</h2><p>Screenshot gallery (see full code)</p></div>
+            <div class="card">
+                <h2>🖼️ Screenshots</h2>
+                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">📁 Click or drop images here</div>
+                <input type="file" id="fileInput" accept="image/*" multiple style="display:none;" onchange="handleFileUpload(event)">
+                <div class="gallery-grid" id="galleryGrid" style="margin-top:16px;"></div>
+                <div class="btn-row"><button class="btn btn-danger btn-sm" onclick="clearScreenshots()">Clear All</button></div>
+            </div>
         </div>
     </div>
+
     <div class="modal-overlay" id="modalOverlay" style="display:none;" onclick="closeModal(event)"><div class="modal" id="modalContent" onclick="event.stopPropagation()"></div></div>
     <div id="toastContainer"></div>
 
     <script>
         (function() {
-            // Safe storage
-            const canStore = (() => { try { localStorage.setItem('t','t'); localStorage.removeItem('t'); return true; } catch(e) { return false; } })();
-            const load = () => { if(!canStore) return null; try { const s=localStorage.getItem('vic3_parliament_tool'); return s?JSON.parse(s):null; } catch(e){return null;} };
-            const save = (d) => { if(!canStore) return; try { localStorage.setItem('vic3_parliament_tool', JSON.stringify(d)); } catch(e){} };
+            // Storage
+            const canStore = (()=>{ try{localStorage.setItem('t','t'); localStorage.removeItem('t'); return true; }catch(e){return false;} })();
+            const load = ()=>{ if(!canStore) return null; try{ return JSON.parse(localStorage.getItem('vic3_parliament_tool')); }catch(e){return null;} };
+            const save = (d)=>{ if(!canStore) return; try{ localStorage.setItem('vic3_parliament_tool', JSON.stringify(d)); }catch(e){} };
 
             const DEFAULT = [
-                { name:'Conservative', color:'#3a6ba5', seats: 35, governing: true },
-                { name:'Liberal', color:'#e8a830', seats: 54, governing: false },
-                { name:'Labour', color:'#c74440', seats: 42, governing: false },
-                { name:'Irish Parl.', color:'#5a9a5a', seats: 28, governing: false },
-                { name:'Independent', color:'#888888', seats: 10, governing: false }
+                { name:'Conservative', color:'#3a6ba5', seats:35, governing:true },
+                { name:'Liberal', color:'#e8a830', seats:54, governing:false },
+                { name:'Labour', color:'#c74440', seats:42, governing:false },
+                { name:'Irish Parl.', color:'#5a9a5a', seats:28, governing:false },
+                { name:'Independent', color:'#888888', seats:10, governing:false }
             ];
 
-            let state = { totalSeats: 169, parties: JSON.parse(JSON.stringify(DEFAULT)), history:[], screenshots:[], savedReports:[] };
-            const saved = load();
-            if(saved) { state.totalSeats = saved.totalSeats||169; state.parties = saved.parties||JSON.parse(JSON.stringify(DEFAULT)); state.history=saved.history||[]; state.screenshots=saved.screenshots||[]; state.savedReports=saved.savedReports||[]; }
+            let state = { totalSeats:169, parties:JSON.parse(JSON.stringify(DEFAULT)), history:[], screenshots:[], savedReports:[] };
+            const stored = load();
+            if(stored) { state.totalSeats=stored.totalSeats||169; state.parties=stored.parties||JSON.parse(JSON.stringify(DEFAULT)); state.history=stored.history||[]; state.screenshots=stored.screenshots||[]; state.savedReports=stored.savedReports||[]; }
 
             function persist() { save({totalSeats:state.totalSeats, parties:state.parties, history:state.history.slice(-50), screenshots:state.screenshots.slice(-30), savedReports:state.savedReports.slice(-20)}); }
             function toast(msg) { const c=document.getElementById('toastContainer'); const t=document.createElement('div'); t.className='toast'; t.textContent=msg; c.appendChild(t); setTimeout(()=>t.remove(),3000); }
@@ -310,152 +330,137 @@
                 });
             });
 
-            // Parliament rendering (natural, 169-optimized)
+            // ---------- Parliament Chamber Rendering ----------
             function renderParliament() {
                 const svg = document.getElementById('parliamentSvg');
                 const total = state.totalSeats;
                 const parties = state.parties;
-                const unassigned = Math.max(0, total - parties.reduce((s,p)=>s+p.seats,0));
+                const assigned = parties.reduce((s,p)=>s+p.seats,0);
+                const unassigned = Math.max(0, total - assigned);
 
-                // Calculate rows using perfect square logic for natural look
-                let rows = [];
-                let seatsNeeded = total;
-                let rowNum = 1;
-                while (seatsNeeded > 0) {
-                    const maxInRow = 2 * rowNum - 1;
+                // Calculate rows (perfect square logic for natural amphitheater)
+                let seatsNeeded = total, rowNum=1, rows=[];
+                while(seatsNeeded>0) {
+                    const maxInRow = 2*rowNum-1;
                     const actual = Math.min(maxInRow, seatsNeeded);
-                    rows.push({ index: rowNum, seats: actual, max: maxInRow });
+                    rows.push({ index:rowNum, seats:actual, max:maxInRow });
                     seatsNeeded -= actual;
                     rowNum++;
                 }
                 const numRows = rows.length;
-                const cx = 450, cy = 460;
-                const rMin = 70, rMax = 340;
-                const angleStart = Math.PI * 0.92;
-                const angleEnd = Math.PI * 0.08;
-                const angleSpan = angleStart - angleEnd;
+                const cx=500, cy=530;
+                const rMin=80, rMax=360;
+                const angleStart=Math.PI*0.93, angleEnd=Math.PI*0.07, angleSpan=angleStart-angleEnd;
 
-                // Build seat list with radial coords + slight jitter
                 let allSeats = [];
-                rows.forEach((row, rowIdx) => {
-                    const t = numRows > 1 ? rowIdx / (numRows - 1) : 0.5;
-                    const r = rMin + t * (rMax - rMin);
+                rows.forEach((row, rowIdx)=>{
+                    const t = numRows>1 ? rowIdx/(numRows-1) : 0.5;
+                    const r = rMin + t*(rMax-rMin);
                     const n = row.seats;
-                    for (let s = 0; s < n; s++) {
-                        const frac = n > 1 ? s / (n - 1) : 0.5;
-                        const angle = angleStart - frac * angleSpan;
-                        const jitterX = (Math.random() - 0.5) * 2.5;
-                        const jitterY = (Math.random() - 0.5) * 2.5;
-                        const x = cx + r * Math.cos(angle) + jitterX;
-                        const y = cy - r * Math.sin(angle) + jitterY;
-                        allSeats.push({ x, y, rowIdx, seatIdx: s, rowTotal: n, r, angle });
+                    for(let s=0; s<n; s++) {
+                        const frac = n>1 ? s/(n-1) : 0.5;
+                        const angle = angleStart - frac*angleSpan;
+                        const jx = (Math.random()-0.5)*2.2, jy = (Math.random()-0.5)*2.2;
+                        allSeats.push({ x:cx+r*Math.cos(angle)+jx, y:cy-r*Math.sin(angle)+jy, rowIdx, seatIdx:s, rowTotal:n, r, angle });
                     }
                 });
 
-                // Distribute seats among parties
-                let seatIdx = 0;
-                let seatAssignments = [];
-                parties.forEach(party => {
-                    for (let i=0; i<party.seats && seatIdx<allSeats.length; i++) {
-                        seatAssignments.push({ ...allSeats[seatIdx], party, governing: party.governing });
-                        seatIdx++;
-                    }
-                });
-                while (seatIdx < allSeats.length) {
-                    seatAssignments.push({ ...allSeats[seatIdx], party: null, governing: false });
-                    seatIdx++;
-                }
+                let seatIdx=0;
+                let assignments = [];
+                parties.forEach(p=>{ for(let i=0;i<p.seats && seatIdx<allSeats.length;i++) { assignments.push({...allSeats[seatIdx], party:p, governing:p.governing}); seatIdx++; } });
+                while(seatIdx<allSeats.length) { assignments.push({...allSeats[seatIdx], party:null, governing:false}); seatIdx++; }
 
-                // SVG generation
-                let html = `
+                // Background: wood floor, ceiling, walls
+                let svgContent = `
                 <defs>
-                    <radialGradient id="floorSpot" cx="50%" cy="82%" r="55%">
-                        <stop offset="0%" stop-color="#2a2a35" stop-opacity="0.9"/>
-                        <stop offset="100%" stop-color="#0d0d14" stop-opacity="1"/>
+                    <pattern id="wood" patternUnits="userSpaceOnUse" width="40" height="40">
+                        <rect width="40" height="40" fill="#4a3820"/>
+                        <path d="M0,20 Q10,18 20,20 T40,20" stroke="#3a2a10" fill="none" stroke-width="0.8" opacity="0.5"/>
+                    </pattern>
+                    <radialGradient id="ceilingGlow" cx="50%" cy="10%" r="60%">
+                        <stop offset="0%" stop-color="#e8d5a3" stop-opacity="0.15"/>
+                        <stop offset="100%" stop-color="#000" stop-opacity="0"/>
                     </radialGradient>
-                    <filter id="puckShadow" x="-20%" y="-20%" width="140%" height="140%">
-                        <feDropShadow dx="0.5" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.8"/>
+                    <filter id="chairShadow" x="-10%" y="-10%" width="120%" height="120%">
+                        <feDropShadow dx="0.5" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.7"/>
                     </filter>
-                    <filter id="govHalo" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur stdDeviation="3" result="blur"/>
+                    <filter id="govGlow" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation="2.5" result="blur"/>
                         <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                     </filter>
                 </defs>
-                <rect width="900" height="500" fill="url(#floorSpot)" rx="8"/>
-                <!-- Curved aisles -->
-                ${rows.map((row, idx) => {
-                    const t = numRows>1 ? idx/(numRows-1) : 0.5;
-                    const r = rMin + t*(rMax - rMin);
-                    return `<path d="M${cx+r*Math.cos(angleStart)},${cy-r*Math.sin(angleStart)} Q${cx},${cy-r*0.7} ${cx+r*Math.cos(angleEnd)},${cy-r*Math.sin(angleEnd)}" fill="none" stroke="#2a2a38" stroke-width="1.5" opacity="0.6"/>`;
-                }).join('')}
-                <!-- Speaker pill -->
-                <rect x="425" y="${cy-55}" width="50" height="18" rx="9" fill="#3a3040" stroke="#5a4a50" stroke-width="1.5" filter="url(#puckShadow)"/>
-                <text x="450" y="${cy-43}" text-anchor="middle" fill="#c9b878" font-size="8" font-family="Inter, sans-serif" font-weight="600">SPEAKER</text>
+                <!-- Chamber background -->
+                <rect width="1000" height="600" fill="#0f0f14"/>
+                <rect width="1000" height="600" fill="url(#wood)" opacity="0.25"/>
+                <rect width="1000" height="600" fill="url(#ceilingGlow)"/>
+                <!-- Walls and columns -->
+                <path d="M100,100 Q500,-20 900,100" fill="none" stroke="#2a2418" stroke-width="8"/>
+                <rect x="80" y="90" width="20" height="400" fill="#2a2418" rx="4"/>
+                <rect x="900" y="90" width="20" height="400" fill="#2a2418" rx="4"/>
+                <!-- Speaker's dais -->
+                <rect x="470" y="480" width="60" height="24" rx="8" fill="#3a3040" stroke="#6b5c3e" stroke-width="2" filter="url(#chairShadow)"/>
+                <text x="500" y="496" text-anchor="middle" fill="#d4b86a" font-size="9" font-family="Inter, sans-serif" font-weight="bold">SPEAKER</text>
+                <!-- Seats -->
                 `;
 
-                seatAssignments.forEach(seat => {
-                    const color = seat.party ? seat.party.color : '#3a3a40';
+                assignments.forEach(seat => {
+                    const color = seat.party ? seat.party.color : '#5a5a5a';
                     const name = seat.party ? seat.party.name : 'Unassigned';
-                    const govClass = seat.governing ? ' governing-glow' : '';
-                    const filter = seat.governing ? 'filter="url(#govHalo)"' : 'filter="url(#puckShadow)"';
-                    html += `
-                    <circle cx="${seat.x.toFixed(1)}" cy="${seat.y.toFixed(1)}" r="4.8" fill="url(#grad-${color.replace('#','')})" stroke="${seat.governing?'#ffd866':'rgba(255,255,255,0.2)'}" stroke-width="1" class="seat-puck${govClass}" ${filter} data-party="${name}" data-governing="${seat.governing}">
+                    const govFilter = seat.governing ? 'filter="url(#govGlow)"' : 'filter="url(#chairShadow)"';
+                    const glowStroke = seat.governing ? '#ffd866' : 'rgba(255,255,255,0.2)';
+                    // Chair: brown rectangle behind the MP dot
+                    svgContent += `
+                    <g ${govFilter} class="seat-group" data-party="${name}" data-governing="${seat.governing}">
+                        <rect x="${seat.x-5}" y="${seat.y-5}" width="10" height="10" rx="2" fill="#5a4a30" stroke="#3a2a10" stroke-width="0.8"/>
+                        <circle cx="${seat.x}" cy="${seat.y}" r="3.8" fill="${color}" stroke="${glowStroke}" stroke-width="1.2"/>
                         <title>${name}${seat.governing?' (Governing)':''}</title>
-                    </circle>`;
+                    </g>`;
                 });
 
-                // Add gradient definitions for each party color
-                const uniqueColors = [...new Set(parties.map(p=>p.color))];
-                uniqueColors.forEach(c => {
-                    html += `
-                    <radialGradient id="grad-${c.replace('#','')}" cx="35%" cy="35%">
-                        <stop offset="0%" stop-color="${lightenColor(c, 0.4)}"/>
-                        <stop offset="100%" stop-color="${c}"/>
-                    </radialGradient>`;
-                });
-                // Unassigned gradient
-                html += `<radialGradient id="grad-3a3a40" cx="35%" cy="35%"><stop offset="0%" stop-color="#5a5a60"/><stop offset="100%" stop-color="#3a3a40"/></radialGradient>`;
-
-                svg.innerHTML = html;
+                svg.innerHTML = svgContent;
                 document.getElementById('seatSummary').textContent = `${total} total seats | ${unassigned} unassigned`;
                 document.getElementById('historyCount').textContent = state.history.length;
                 renderPartyList();
-            }
-
-            function lightenColor(hex, factor) {
-                const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-                const lr = Math.min(255, Math.floor(r + (255-r)*factor));
-                const lg = Math.min(255, Math.floor(g + (255-g)*factor));
-                const lb = Math.min(255, Math.floor(b + (255-b)*factor));
-                return `#${lr.toString(16).padStart(2,'0')}${lg.toString(16).padStart(2,'0')}${lb.toString(16).padStart(2,'0')}`;
             }
 
             function renderPartyList() {
                 const container = document.getElementById('partyList');
                 const unassigned = Math.max(0, state.totalSeats - state.parties.reduce((s,p)=>s+p.seats,0));
                 let html = '';
-                state.parties.forEach((p, idx) => {
+                state.parties.forEach((p, idx)=>{
                     html += `
-                    <div class="party-chip${p.governing?' governing':''}" onclick="window.toggleGoverning(${idx})">
+                    <div class="party-chip${p.governing?' governing':''}" onclick="toggleGoverning(${idx})">
                         <span class="swatch" style="background:${p.color};"></span>
                         <span class="party-name">${p.name}</span>
                         <span class="seat-count">${p.seats}</span>
-                        <button class="btn-sm" onclick="event.stopPropagation(); window.adjustSeats(${idx},-1)">−</button>
-                        <button class="btn-sm" onclick="event.stopPropagation(); window.adjustSeats(${idx},1)">+</button>
-                        <button class="btn-sm" style="background:#5a2a22;border-color:#8a3a2a;color:#faa;" onclick="event.stopPropagation(); window.removeParty(${idx})">×</button>
-                        <button class="btn-sm" style="background:transparent;border:1px solid #666;" onclick="event.stopPropagation(); window.highlightParty('${p.name}')" title="Highlight">🔍</button>
+                        <button class="btn-sm" onclick="event.stopPropagation(); adjustSeats(${idx},-1)">−</button>
+                        <button class="btn-sm" onclick="event.stopPropagation(); adjustSeats(${idx},1)">+</button>
+                        <button class="btn-sm" style="background:#5a2a22;border-color:#8a3a2a;color:#faa;" onclick="event.stopPropagation(); removeParty(${idx})">×</button>
+                        <button class="btn-sm" style="background:transparent;border:1px solid #666;" onclick="event.stopPropagation(); highlightParty('${p.name}')" title="Highlight">🔍</button>
                     </div>`;
                 });
                 if(unassigned>0) html += `<span style="color:var(--text2);padding:8px;">+ ${unassigned} unassigned</span>`;
                 container.innerHTML = html;
             }
 
+            // Highlighting logic
+            window.highlightParty = (partyName) => {
+                const groups = document.querySelectorAll('#parliamentSvg .seat-group');
+                groups.forEach(g => {
+                    const p = g.getAttribute('data-party');
+                    if(!partyName || p === partyName) { g.style.opacity='1'; g.style.filter = g.getAttribute('data-governing')==='true'? 'url(#govGlow)' : 'url(#chairShadow)'; }
+                    else { g.style.opacity='0.3'; g.style.filter='none'; }
+                });
+                if(!partyName) toast('Highlight cleared'); else toast(`Highlighting ${partyName}`);
+            };
+
+            // Basic party interactions
             window.adjustSeats = (idx, delta) => {
                 const p = state.parties[idx];
                 const newSeats = p.seats + delta;
-                if(newSeats < 0) return;
+                if(newSeats<0) return;
                 const other = state.parties.reduce((s,pt,i)=>s+(i===idx?0:pt.seats),0);
-                if(newSeats + other > state.totalSeats && delta>0) { toast('Not enough unassigned seats!'); return; }
+                if(newSeats+other > state.totalSeats && delta>0) { toast('Not enough unassigned seats!'); return; }
                 p.seats = newSeats;
                 refresh();
             };
@@ -485,49 +490,132 @@
             window.saveToHistory = () => {
                 const entry = { date: new Date().toISOString(), label: prompt('Label:','Government '+(state.history.length+1))||'Government', totalSeats:state.totalSeats, parties:JSON.parse(JSON.stringify(state.parties)) };
                 state.history.unshift(entry); if(state.history.length>50) state.history=state.history.slice(0,50);
-                persist(); renderHistory(); toast('Saved to history!');
+                persist(); renderHistory(); toast('Saved!');
             };
             window.resetParliament = () => {
                 if(confirm('Reset to default?')) { state.totalSeats=169; state.parties=JSON.parse(JSON.stringify(DEFAULT)); document.getElementById('totalSeats').value=169; refresh(); }
             };
-            window.highlightParty = (partyName) => {
-                const circles = document.querySelectorAll('#parliamentSvg .seat-puck');
-                circles.forEach(c => {
-                    const p = c.getAttribute('data-party');
-                    if(!partyName || p === partyName) { c.style.opacity = '1'; c.style.filter = c.classList.contains('governing-glow')? 'url(#govHalo)' : 'url(#puckShadow)'; }
-                    else { c.style.opacity = '0.25'; c.style.filter = 'none'; }
-                });
-                if(!partyName) toast('Highlight cleared');
-                else toast(`Highlighting ${partyName}`);
-            };
 
             function refresh() { renderParliament(); persist(); }
-            function renderHistory() { /* simplified */ document.getElementById('historyTimeline').innerHTML = state.history.length? state.history.map((e,i)=>`<div class="timeline-entry" onclick="alert('View history')">${e.label}</div>`).join(''):'<p>No saved governments.</p>'; }
-            window.clearHistory = () => { state.history=[]; persist(); renderHistory(); };
-            window.exportHistory = () => { const b=new Blob([JSON.stringify(state.history)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='history.json'; a.click(); };
 
-            // Minimal economy & screenshots stubs (for completeness, but full functionality not expanded due to length)
-            window.generateReport = () => toast('Report generated (see full version)');
-            window.printReport = () => window.print();
-            window.saveEconomicReport = () => toast('Report saved');
-            function renderSavedReports(){}
-            window.loadSavedReport = (i) => {};
-            window.deleteSavedReport = (i) => {};
-            window.handleFileUpload = (e) => { const files=e.target.files; if(files.length) toast('Screenshot upload (see full version)'); };
-            window.addScreenshot = (n,d) => { state.screenshots.unshift({date:new Date().toISOString(),name:n,dataUrl:d}); persist(); renderGallery(); };
-            function renderGallery() { document.getElementById('galleryGrid').innerHTML = state.screenshots.length? state.screenshots.map((s,i)=>`<div>${s.name}</div>`).join(''):'<p>No screenshots</p>'; }
-            window.viewScreenshot = (i) => {};
-            window.downloadScreenshot = (i) => {};
-            window.deleteScreenshot = (i) => {};
-            window.clearScreenshots = () => { state.screenshots=[]; persist(); renderGallery(); };
+            // ---------- History ----------
+            function renderHistory() {
+                const container = document.getElementById('historyTimeline');
+                if(!state.history.length) { container.innerHTML='<p>No saved governments yet.</p>'; return; }
+                container.innerHTML = state.history.map((e,i)=>`
+                    <div class="timeline-entry" onclick="viewHistory(${i})">
+                        <div class="date">${new Date(e.date).toLocaleDateString()}</div>
+                        <div class="gov-name">${e.label}</div>
+                    </div>`).join('');
+                document.getElementById('historyCount').textContent = state.history.length;
+            }
+            window.clearHistory = ()=>{ if(confirm('Clear history?')) { state.history=[]; persist(); renderHistory(); } };
+            window.exportHistory = ()=>{ const b=new Blob([JSON.stringify(state.history)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='history.json'; a.click(); };
+            window.viewHistory = (idx)=>{
+                const e=state.history[idx];
+                const modal = document.getElementById('modalContent');
+                modal.innerHTML = `<button class="btn btn-sm" onclick="closeModalDirect()">✕</button><h3>${e.label}</h3><p>Seats: ${e.totalSeats}</p><button class="btn btn-primary" onclick="restoreHistory(${idx})">Restore</button>`;
+                document.getElementById('modalOverlay').style.display='flex';
+            };
+            window.restoreHistory = (idx)=>{
+                const e=state.history[idx];
+                state.totalSeats=e.totalSeats; state.parties=JSON.parse(JSON.stringify(e.parties));
+                document.getElementById('totalSeats').value=e.totalSeats; refresh(); closeModalDirect(); toast('Parliament restored!');
+            };
 
+            // ---------- Economic Report ----------
+            window.generateReport = () => {
+                const country = document.getElementById('ecoCountry').value||'Unknown';
+                const year = document.getElementById('ecoYear').value||'18--';
+                const gdp = parseFloat(document.getElementById('ecoGDP').value)||0;
+                const growth = parseFloat(document.getElementById('ecoGrowth').value)||0;
+                const revenue = parseFloat(document.getElementById('ecoRevenue').value)||0;
+                const expend = parseFloat(document.getElementById('ecoExpend').value)||0;
+                const debt = parseFloat(document.getElementById('ecoDebt').value)||0;
+                const balance = revenue-expend;
+                const html = `
+                <div class="report-paper">
+                    <div class="report-header">
+                        <div class="bank-name">Royal Economic Intelligence</div>
+                        <div class="report-title">Annual Economic Report</div>
+                        <div class="country-year">${country} — ${year}</div>
+                    </div>
+                    <div class="report-section"><h3>Summary</h3><p>${document.getElementById('ecoNotes').value}</p></div>
+                    <div class="report-section">
+                        <h3>Key Indicators</h3>
+                        <table class="report-table">
+                            <tr><td>GDP</td><td class="num">£${(gdp/1000).toFixed(1)}B</td></tr>
+                            <tr><td>Growth</td><td class="num">${growth}%</td></tr>
+                            <tr><td>Balance</td><td class="num">£${balance}M</td></tr>
+                            <tr><td>Debt</td><td class="num">£${debt}M</td></tr>
+                        </table>
+                    </div>
+                    <div class="report-footer">Generated ${new Date().toLocaleDateString()}</div>
+                </div>`;
+                document.getElementById('reportContent').innerHTML = html;
+                document.getElementById('reportContainer').style.display='block';
+                toast('Report generated!');
+            };
+            window.printReport = () => { if(!document.getElementById('reportContent').innerHTML) toast('Generate report first'); else window.print(); };
+            window.saveEconomicReport = () => {
+                const html = document.getElementById('reportContent').innerHTML;
+                if(!html) { toast('Generate report first'); return; }
+                state.savedReports.unshift({date:new Date().toISOString(), country:document.getElementById('ecoCountry').value, year:document.getElementById('ecoYear').value, html});
+                if(state.savedReports.length>20) state.savedReports=state.savedReports.slice(0,20);
+                persist(); renderSavedReports(); toast('Report saved!');
+            };
+            function renderSavedReports() {
+                const container = document.getElementById('savedReportsList');
+                if(!state.savedReports.length) { container.innerHTML='<p>No saved reports.</p>'; return; }
+                container.innerHTML = state.savedReports.map((r,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:8px;border-bottom:1px solid var(--border);"><span>${r.country} ${r.year}</span><button class="btn btn-sm" onclick="loadSavedReport(${i})">View</button><button class="btn btn-sm btn-danger" onclick="deleteSavedReport(${i})">Del</button></div>`).join('');
+            }
+            window.loadSavedReport = (i) => { document.getElementById('reportContent').innerHTML = state.savedReports[i].html; document.getElementById('reportContainer').style.display='block'; };
+            window.deleteSavedReport = (i) => { if(confirm('Delete?')) { state.savedReports.splice(i,1); persist(); renderSavedReports(); } };
+
+            // ---------- Screenshots ----------
+            window.handleFileUpload = (e) => {
+                const files = e.target.files;
+                if(!files.length) return;
+                Array.from(files).forEach(file=>{
+                    if(!file.type.startsWith('image/')) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        let dataUrl = ev.target.result;
+                        if(dataUrl.length>500000) {
+                            const img = new Image(); img.onload = ()=>{ const c=document.createElement('canvas'); c.width=img.width*0.5; c.height=img.height*0.5; c.getContext('2d').drawImage(img,0,0,c.width,c.height); addScreenshot(file.name, c.toDataURL('image/jpeg',0.7)); }; img.src=dataUrl;
+                        } else addScreenshot(file.name, dataUrl);
+                    };
+                    reader.readAsDataURL(file);
+                });
+                e.target.value='';
+            };
+            function addScreenshot(name, dataUrl) { state.screenshots.unshift({date:new Date().toISOString(),name,dataUrl}); if(state.screenshots.length>30) state.screenshots=state.screenshots.slice(0,30); persist(); renderGallery(); }
+            function renderGallery() {
+                const grid = document.getElementById('galleryGrid');
+                if(!state.screenshots.length) { grid.innerHTML='<p>No screenshots.</p>'; return; }
+                grid.innerHTML = state.screenshots.map((s,i)=>`<div class="gallery-item" onclick="viewScreenshot(${i})"><img src="${s.dataUrl}" alt="${s.name}"></div>`).join('');
+            }
+            window.viewScreenshot = (i) => { const s=state.screenshots[i]; document.getElementById('modalContent').innerHTML=`<button class="btn btn-sm" onclick="closeModalDirect()">✕</button><img src="${s.dataUrl}" style="width:100%">`; document.getElementById('modalOverlay').style.display='flex'; };
+            window.downloadScreenshot = (i) => { const s=state.screenshots[i]; const a=document.createElement('a'); a.href=s.dataUrl; a.download=s.name; a.click(); };
+            window.deleteScreenshot = (i) => { if(confirm('Delete?')){ state.screenshots.splice(i,1); persist(); renderGallery(); closeModalDirect(); } };
+            window.clearScreenshots = () => { if(confirm('Clear all?')){ state.screenshots=[]; persist(); renderGallery(); } };
+
+            // Modal
             window.closeModal = (e) => { if(e.target===document.getElementById('modalOverlay')) document.getElementById('modalOverlay').style.display='none'; };
             window.closeModalDirect = () => { document.getElementById('modalOverlay').style.display='none'; };
 
+            // Drag & drop
+            const uploadZone = document.getElementById('uploadZone');
+            uploadZone.addEventListener('dragover', e=>{ e.preventDefault(); uploadZone.style.borderColor='var(--gold)'; });
+            uploadZone.addEventListener('dragleave', ()=> uploadZone.style.borderColor='');
+            uploadZone.addEventListener('drop', e=>{ e.preventDefault(); uploadZone.style.borderColor=''; const dt = new DataTransfer(); Array.from(e.dataTransfer.files).forEach(f=>dt.items.add(f)); document.getElementById('fileInput').files=dt.files; handleFileUpload({target:{files:dt.files}}); });
+
+            // Init
             document.getElementById('totalSeats').value = state.totalSeats;
             refresh();
             renderHistory();
             renderGallery();
+            renderSavedReports();
         })();
     </script>
 </body>
