@@ -141,13 +141,13 @@
             font-size: 1.05em;
             margin: 12px 0 8px;
         }
-        /* Diagram wrapper – transparent background */
         .diagram-wrapper {
             background: transparent;
             border-radius: 4px;
-            overflow: visible;
+            overflow: hidden;
             max-width: 1000px;
             margin: 0 auto;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
         }
         .diagram-wrapper svg {
             width: 100%;
@@ -194,6 +194,15 @@
         }
         .party-chip .party-name {
             color: var(--text2);
+        }
+        .party-chip select {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.8em;
+            cursor: pointer;
         }
         .btn {
             padding: 10px 20px;
@@ -455,6 +464,7 @@
                     <input type="number" id="totalSeats" value="169" min="10" max="800" step="1" style="width:80px;">
                     <button class="btn btn-sm" onclick="updateTotalSeats()">Apply</button>
                     <span style="color:var(--text2);" id="seatSummary">169 seats</span>
+                    <button class="btn btn-sm" style="margin-left:auto;" onclick="sortPartiesByPosition()">📊 Sort L→R by Position</button>
                 </div>
                 <div class="diagram-wrapper">
                     <svg id="parliamentSvg" viewBox="0 0 1000 800" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -532,12 +542,16 @@
             const save = (d) => { if (!canStore) return; try { localStorage.setItem('vic3_parliament_tool', JSON.stringify(
                     d)); } catch (e) {} };
 
+            const POSITIONS = ['far-left', 'left', 'center-left', 'center', 'center-right', 'right', 'far-right'];
+            const POSITION_ORDER = { 'far-left': 0, 'left': 1, 'center-left': 2, 'center': 3, 'center-right': 4, 'right': 5,
+                'far-right': 6 };
+
             const DEFAULT = [
-                { name: 'Conservative', color: '#3a6ba5', seats: 35, governing: true },
-                { name: 'Liberal', color: '#e8a830', seats: 54, governing: false },
-                { name: 'Labour', color: '#c74440', seats: 42, governing: false },
-                { name: 'Irish Parl.', color: '#5a9a5a', seats: 28, governing: false },
-                { name: 'Independent', color: '#888888', seats: 10, governing: false }
+                { name: 'Labour', color: '#c74440', seats: 42, governing: false, position: 'left' },
+                { name: 'Irish Parl.', color: '#5a9a5a', seats: 28, governing: false, position: 'center-left' },
+                { name: 'Liberal', color: '#e8a830', seats: 54, governing: false, position: 'center' },
+                { name: 'Conservative', color: '#3a6ba5', seats: 35, governing: true, position: 'right' },
+                { name: 'Independent', color: '#888888', seats: 10, governing: false, position: 'center' }
             ];
 
             let state = { totalSeats: 169, parties: JSON.parse(JSON.stringify(DEFAULT)), history: [],
@@ -572,63 +586,47 @@
                 });
             });
 
-            // ╔══════════════════════════════════════════════════════════╗
-            // ║  CLEAN HORSESHOE LAYOUT – Arch + Straight Rows        ║
-            // ║  Transparent background · 1000×800 viewBox             ║
-            // ║  Squarish blocks · Smooth rotation · Central aisle     ║
-            // ╚══════════════════════════════════════════════════════════╝
+            // ── Geometry constants (larger blocks) ──
             const VIEW_W = 1000;
             const VIEW_H = 800;
-            const ARC_CX = 500; // center x of the arch
-            const ARC_CY = 580; // center y of the arch (below center of canvas)
-            const OUTER_R = 400; // outermost arch radius
-            const INNER_R = 180; // innermost arch radius
-            const ROW_SPACING = 28; // vertical spacing between rows (block height + gap)
-            const BLOCK_W = 12; // block width
-            const BLOCK_H = 16; // block height (slightly taller than wide)
-            const BLOCK_GAP_X = 13; // horizontal gap between blocks
-            const AISLE_HALF = 12; // half-width of the central aisle
-            const STRAIGHT_ROWS = 4; // number of horizontal rows at the bottom
-            const STRAIGHT_Y_START = 610; // y-position of the first straight row
+            const ARC_CX = 500;
+            const ARC_CY = 580;
+            const OUTER_R = 400;
+            const INNER_R = 160;
+            const ROW_SPACING = 32; // increased for larger blocks
+            const BLOCK_W = 16; // larger mandates
+            const BLOCK_H = 22; // slightly taller than wide
+            const BLOCK_GAP_X = 16;
+            const AISLE_HALF = 14;
+            const STRAIGHT_ROWS = 4;
+            const STRAIGHT_Y_START = 610;
 
             function computeBlockPositions(totalSeats) {
                 const archRows = Math.floor((OUTER_R - INNER_R) / ROW_SPACING) + 1;
                 let allPositions = [];
 
-                // ── Build arch positions (outermost row first) ──
                 for (let row = 0; row < archRows; row++) {
                     const radius = OUTER_R - row * ROW_SPACING;
                     if (radius < INNER_R) break;
-
-                    // Determine angular bounds for this radius so blocks stay within x≈[85, 915]
                     const maxHorizOffset = Math.min(415, radius * 0.98);
-                    const minAngle = Math.acos(maxHorizOffset / radius); // angle from positive x-axis (right side)
-                    const maxAngle = Math.PI - minAngle; // angle from positive x-axis (left side)
+                    const minAngle = Math.acos(maxHorizOffset / radius);
+                    const maxAngle = Math.PI - minAngle;
                     const angularSpan = maxAngle - minAngle;
-                    // Account for aisle gap in the middle
                     const aisleAngle = 2 * Math.asin(AISLE_HALF / radius);
                     const usableSpan = angularSpan - aisleAngle;
                     const arcLength = radius * usableSpan;
                     const maxBlocks = Math.max(1, Math.floor(arcLength / (BLOCK_W + BLOCK_GAP_X)));
-
-                    // Split into left and right halves around the aisle
                     const halfAngle = (angularSpan - aisleAngle) / 2;
-                    // Left side: from maxAngle down to π/2 + aisleAngle/2
-                    // Right side: from π/2 - aisleAngle/2 down to minAngle
                     const leftStart = maxAngle;
                     const leftEnd = Math.PI / 2 + aisleAngle / 2;
                     const rightStart = Math.PI / 2 - aisleAngle / 2;
                     const rightEnd = minAngle;
-
                     const leftSpan = leftStart - leftEnd;
                     const rightSpan = rightStart - rightEnd;
                     const totalSpan = leftSpan + rightSpan;
-
-                    // Distribute blocks proportionally between left and right
                     const leftCount = Math.round(maxBlocks * leftSpan / totalSpan);
                     const rightCount = maxBlocks - leftCount;
 
-                    // Left side blocks
                     for (let i = 0; i < leftCount; i++) {
                         const frac = leftCount > 1 ? i / (leftCount - 1) : 0.5;
                         const angle = leftStart - frac * leftSpan;
@@ -637,7 +635,6 @@
                         const rotation = (angle - Math.PI / 2) * (180 / Math.PI);
                         allPositions.push({ x, y, rotation, isArch: true, radius, angle, side: 'left' });
                     }
-                    // Right side blocks
                     for (let i = 0; i < rightCount; i++) {
                         const frac = rightCount > 1 ? i / (rightCount - 1) : 0.5;
                         const angle = rightStart - frac * rightSpan;
@@ -648,8 +645,7 @@
                     }
                 }
 
-                // ── Build straight row positions ──
-                // Determine x-bounds from the outermost arch row at its lowest point
+                // Straight rows
                 const lowestArchAngle = Math.acos(415 / OUTER_R);
                 const leftBound = ARC_CX + OUTER_R * Math.cos(Math.PI - lowestArchAngle);
                 const rightBound = ARC_CX + OUTER_R * Math.cos(lowestArchAngle);
@@ -658,7 +654,6 @@
 
                 for (let row = 0; row < STRAIGHT_ROWS; row++) {
                     const y = STRAIGHT_Y_START + row * ROW_SPACING;
-                    // Left side straight blocks
                     const leftStartX = leftBound + (usableWidth / 2 - blocksPerSide * (BLOCK_W + BLOCK_GAP_X)) / 2;
                     for (let i = 0; i < blocksPerSide; i++) {
                         const x = leftStartX + i * (BLOCK_W + BLOCK_GAP_X) + BLOCK_W / 2;
@@ -666,7 +661,6 @@
                             allPositions.push({ x, y, rotation: 0, isArch: false, side: 'left' });
                         }
                     }
-                    // Right side straight blocks
                     const rightStartX = ARC_CX + AISLE_HALF + (usableWidth / 2 - blocksPerSide * (BLOCK_W + BLOCK_GAP_X)) /
                         2;
                     for (let i = 0; i < blocksPerSide; i++) {
@@ -677,20 +671,14 @@
                     }
                 }
 
-                // ── Sort positions for party assignment (left to right) ──
-                // Arch blocks: sort by angle descending (leftmost first)
-                // Straight blocks: sort by x ascending
+                // Sort positions left to right for assignment
                 const archPositions = allPositions.filter(p => p.isArch).sort((a, b) => b.angle - a.angle);
                 const straightPositions = allPositions.filter(p => !p.isArch).sort((a, b) => a.x - b.x);
-
-                // Combine: all arch blocks (left to right) then straight blocks (left to right)
                 const sortedPositions = [...archPositions, ...straightPositions];
 
-                // Trim or pad to match totalSeats
                 if (sortedPositions.length > totalSeats) {
                     return sortedPositions.slice(0, totalSeats);
                 }
-                // If we need more seats than positions, add extras (shouldn't happen often)
                 while (sortedPositions.length < totalSeats) {
                     sortedPositions.push({
                         x: ARC_CX + (sortedPositions.length % 2 === 0 ? 50 : -50),
@@ -703,19 +691,25 @@
                 return sortedPositions;
             }
 
+            function sortPartiesByPosition() {
+                state.parties.sort((a, b) => (POSITION_ORDER[a.position] || 0) - (POSITION_ORDER[b.position] || 0));
+                refresh();
+                toast('Parties sorted left to right.');
+            }
+
             function renderParliament() {
                 const svg = document.getElementById('parliamentSvg');
                 const total = state.totalSeats;
-                const parties = state.parties;
-                const assigned = parties.reduce((s, p) => s + p.seats, 0);
+                // Sort parties by position before rendering
+                const sortedParties = [...state.parties].sort((a, b) => (POSITION_ORDER[a.position] || 0) - (POSITION_ORDER[b
+                    .position] || 0));
+                const assigned = sortedParties.reduce((s, p) => s + p.seats, 0);
                 const unassigned = Math.max(0, total - assigned);
 
                 const positions = computeBlockPositions(total);
-
-                // Assign parties to positions in left-to-right order
                 let posIdx = 0;
                 const assignments = [];
-                parties.forEach(p => {
+                sortedParties.forEach(p => {
                     for (let i = 0; i < p.seats && posIdx < positions.length; i++) {
                         assignments.push({ ...positions[posIdx], party: p, governing: p.governing });
                         posIdx++;
@@ -726,38 +720,51 @@
                     posIdx++;
                 }
 
-                // Build SVG (no background rect = transparent)
-                let svgContent = '';
+                // Background: mini parliament chamber feel
+                let svgContent = `
+                    <defs>
+                        <radialGradient id="chamberGlow" cx="50%" cy="80%" r="60%">
+                            <stop offset="0%" stop-color="#3a3020" stop-opacity="0.6"/>
+                            <stop offset="100%" stop-color="#1a1410" stop-opacity="0.9"/>
+                        </radialGradient>
+                        <pattern id="wood" patternUnits="userSpaceOnUse" width="30" height="30">
+                            <rect width="30" height="30" fill="#4a3820"/>
+                            <path d="M0 15 Q7 13 15 15 T30 15" stroke="#3a2a10" fill="none" stroke-width="0.8" opacity="0.3"/>
+                        </pattern>
+                    </defs>
+                    <rect width="${VIEW_W}" height="${VIEW_H}" fill="url(#wood)" opacity="0.8"/>
+                    <rect width="${VIEW_W}" height="${VIEW_H}" fill="url(#chamberGlow)"/>
+                    <!-- Arch outline -->
+                    <path d="M${ARC_CX - OUTER_R + 10},${ARC_CY} Q${ARC_CX},${ARC_CY - OUTER_R - 20} ${ARC_CX + OUTER_R - 10},${ARC_CY}" fill="none" stroke="#6b5c3e" stroke-width="2" opacity="0.5"/>
+                    <!-- Center aisle -->
+                    <rect x="${ARC_CX - AISLE_HALF}" y="0" width="${AISLE_HALF*2}" height="${VIEW_H}" fill="#2a2418" opacity="0.6"/>
+                    <line x1="${ARC_CX}" y1="0" x2="${ARC_CX}" y2="${VIEW_H}" stroke="#6b5c3e" stroke-width="1" opacity="0.4"/>
+                `;
 
-                // Subtle center aisle indicator (very faint)
-                svgContent +=
-                    `<line x1="${ARC_CX}" y1="0" x2="${ARC_CX}" y2="${VIEW_H}" stroke="#ccc" stroke-width="${AISLE_HALF*2}" opacity="0.25"/>`;
-
-                // Draw each block
                 assignments.forEach(seat => {
-                    const color = seat.party ? seat.party.color : '#ddd';
+                    const color = seat.party ? seat.party.color : '#aaa';
                     const name = seat.party ? seat.party.name : 'Unassigned';
                     const stroke = seat.governing ? '#000' : '#888';
-                    const strokeWidth = seat.governing ? '1.2' : '0.7';
+                    const strokeWidth = seat.governing ? '1.5' : '0.8';
 
                     if (seat.isArch) {
                         svgContent += `
                         <g transform="translate(${seat.x.toFixed(2)}, ${seat.y.toFixed(2)}) rotate(${seat.rotation.toFixed(2)})">
-                          <rect x="${(-BLOCK_W/2).toFixed(2)}" y="${(-BLOCK_H/2).toFixed(2)}" width="${BLOCK_W}" height="${BLOCK_H}" rx="2" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}" data-party="${name}" data-governing="${seat.governing}">
+                          <rect x="${(-BLOCK_W/2).toFixed(2)}" y="${(-BLOCK_H/2).toFixed(2)}" width="${BLOCK_W}" height="${BLOCK_H}" rx="3" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}" data-party="${name}" data-governing="${seat.governing}">
                             <title>${name}${seat.governing ? ' (Governing)' : ''}</title>
                           </rect>
                         </g>`;
                     } else {
                         svgContent += `
-                        <rect x="${(seat.x - BLOCK_W/2).toFixed(2)}" y="${(seat.y - BLOCK_H/2).toFixed(2)}" width="${BLOCK_W}" height="${BLOCK_H}" rx="2" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}" data-party="${name}" data-governing="${seat.governing}">
+                        <rect x="${(seat.x - BLOCK_W/2).toFixed(2)}" y="${(seat.y - BLOCK_H/2).toFixed(2)}" width="${BLOCK_W}" height="${BLOCK_H}" rx="3" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}" data-party="${name}" data-governing="${seat.governing}">
                           <title>${name}${seat.governing ? ' (Governing)' : ''}</title>
                         </rect>`;
                     }
                 });
 
-                // Seat count label at bottom center
+                // Seat count label
                 svgContent +=
-                    `<text x="${ARC_CX}" y="${VIEW_H - 15}" text-anchor="middle" fill="#444" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold">${total}</text>`;
+                    `<text x="${ARC_CX}" y="${VIEW_H - 15}" text-anchor="middle" fill="#e0d8cc" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="bold" opacity="0.8">${total}</text>`;
 
                 svg.innerHTML = svgContent;
                 document.getElementById('seatSummary').textContent = `${total} total seats | ${unassigned} unassigned`;
@@ -767,23 +774,34 @@
 
             function renderPartyList() {
                 const container = document.getElementById('partyList');
+                const sorted = [...state.parties].sort((a, b) => (POSITION_ORDER[a.position] || 0) - (POSITION_ORDER[b
+                    .position] || 0));
                 const unassigned = Math.max(0, state.totalSeats - state.parties.reduce((s, p) => s + p.seats, 0));
                 let html = '';
-                state.parties.forEach((p, idx) => {
+                sorted.forEach((p, idx) => {
+                    const realIndex = state.parties.indexOf(p); // find original index for mutation
                     html += `
-                    <div class="party-chip${p.governing ? ' governing' : ''}" onclick="toggleGoverning(${idx})">
+                    <div class="party-chip${p.governing ? ' governing' : ''}" onclick="toggleGoverning(${realIndex})">
                       <span class="swatch" style="background:${p.color};"></span>
                       <span class="party-name">${p.name}</span>
                       <span class="seat-count">${p.seats}</span>
-                      <button class="btn-sm" onclick="event.stopPropagation();adjustSeats(${idx},-1)">−</button>
-                      <button class="btn-sm" onclick="event.stopPropagation();adjustSeats(${idx},1)">+</button>
-                      <button class="btn-sm" style="background:#5a2a22;border-color:#8a3a2a;color:#faa;" onclick="event.stopPropagation();removeParty(${idx})">×</button>
+                      <select onclick="event.stopPropagation();" onchange="updatePartyPosition(${realIndex}, this.value)" value="${p.position}">
+                        ${POSITIONS.map(pos => `<option value="${pos}" ${p.position === pos ? 'selected' : ''}>${pos}</option>`).join('')}
+                      </select>
+                      <button class="btn-sm" onclick="event.stopPropagation(); adjustSeats(${realIndex}, -1)">−</button>
+                      <button class="btn-sm" onclick="event.stopPropagation(); adjustSeats(${realIndex}, 1)">+</button>
+                      <button class="btn-sm" style="background:#5a2a22;border-color:#8a3a2a;color:#faa;" onclick="event.stopPropagation(); removeParty(${realIndex})">×</button>
                     </div>`;
                 });
                 if (unassigned > 0) html +=
                     `<span style="color:var(--text2);padding:8px;">+ ${unassigned} unassigned</span>`;
                 container.innerHTML = html;
             }
+
+            window.updatePartyPosition = (idx, newPos) => {
+                state.parties[idx].position = newPos;
+                refresh();
+            };
 
             window.adjustSeats = (idx, delta) => {
                 const p = state.parties[idx];
@@ -803,7 +821,7 @@
             window.addParty = () => { const name = prompt('Party name:', 'New Party'); if (!name || !name.trim())
                 return;
                 state.parties.push({ name: name.trim(), color: '#' + Math.floor(Math.random() * 16777215).toString(
-                        16).padStart(6, '0'), seats: 0, governing: false });
+                        16).padStart(6, '0'), seats: 0, governing: false, position: 'center' });
                 refresh();
                 toast(`Added "${name.trim()}"`); };
             window.updateTotalSeats = () => { const val = parseInt(document.getElementById('totalSeats').value) || 169;
