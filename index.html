@@ -18,9 +18,7 @@
             --font-heading: 'Georgia', 'Times New Roman', serif;
             --font-body: 'Segoe UI', system-ui, sans-serif;
             --radius: 8px;
-            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
         }
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -52,7 +50,6 @@
             color: var(--gold);
             letter-spacing: 1px;
             white-space: nowrap;
-            text-shadow: 0 0 20px rgba(201, 168, 76, 0.3);
         }
         .header .logo span {
             color: #d4b86a;
@@ -89,7 +86,6 @@
             color: var(--gold);
             border-color: var(--gold) var(--gold) transparent var(--gold);
             font-weight: bold;
-            box-shadow: 0 -2px 12px rgba(201, 168, 76, 0.15);
         }
         .nav-tab .badge {
             display: inline-block;
@@ -128,7 +124,7 @@
             border-radius: var(--radius);
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: var(--shadow);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
         }
         .card h2 {
             font-family: var(--font-heading);
@@ -145,16 +141,15 @@
             font-size: 1.05em;
             margin: 12px 0 8px;
         }
-        .chamber-wrapper {
-            background: #0d0d12;
-            border-radius: 12px;
-            border: 1px solid var(--border);
+        .diagram-wrapper {
+            background: #fff;
+            border-radius: 4px;
             overflow: hidden;
-            max-width: 1000px;
+            max-width: 720px;
             margin: 0 auto;
-            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
         }
-        .chamber-wrapper svg {
+        .diagram-wrapper svg {
             width: 100%;
             height: auto;
             display: block;
@@ -207,7 +202,6 @@
             font-size: 0.9em;
             border: 1px solid var(--border);
             transition: all 0.25s;
-            letter-spacing: 0.3px;
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -458,16 +452,15 @@
         <!-- Parliament Tab -->
         <div class="tab-content active" id="parliamentTab">
             <div class="card">
-                <h2>🏛️ Parliament Chamber</h2>
+                <h2>🏛️ Parliament Diagram</h2>
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
                     <label>Total Seats:</label>
                     <input type="number" id="totalSeats" value="169" min="10" max="1000" step="1" style="width:80px;">
                     <button class="btn btn-sm" onclick="updateTotalSeats()">Apply</button>
                     <span style="color:var(--text2);" id="seatSummary">169 seats</span>
-                    <button class="btn btn-sm" onclick="highlightParty(null)" style="margin-left:auto;">✨ Clear Highlight</button>
                 </div>
-                <div class="chamber-wrapper">
-                    <svg id="parliamentSvg" viewBox="0 0 1000 580" xmlns="http://www.w3.org/2000/svg"></svg>
+                <div class="diagram-wrapper">
+                    <svg id="parliamentSvg" viewBox="0 0 360 185" xmlns="http://www.w3.org/2000/svg"></svg>
                 </div>
             </div>
             <div class="card">
@@ -588,9 +581,85 @@
                 });
             });
 
-            // ──────────────────────────────────────────────
-            //  PARLIAMENT CHAMBER – fully redesigned
-            // ──────────────────────────────────────────────
+            // ╔══════════════════════════════════════════════════════════╗
+            // ║  WIKIPEDIA-STYLE HEMICYCLE LAYOUT (as used on Commons) ║
+            // ╚══════════════════════════════════════════════════════════╝
+            // Based on the actual algorithm from:
+            //   https://en.wikipedia.org/wiki/Module:Parliament_diagram
+            //   https://github.com/Gouvernathor/parliamentarch
+            //
+            // Key parameters (matching Wikipedia's template):
+            //   dimx = 175   (half the diagram width)
+            //   dimr = 50    (reference radius for row spacing)
+            //   dimc = 40    (dot diameter factor)
+            //   viewBox = "0 0 360 185"  (2:1 aspect ratio)
+
+            const DIMX = 175; // half-width of the diagram
+            const DIMR = 50; // reference radius for row spacing
+            const DIMC = 40; // dot diameter factor
+
+            // Pre-computed maximum dots per bench count (from Wikipedia module)
+            // These are the cumulative maximum dots that fit in 1,2,3,... rows
+            const TOTALS = [4, 17, 36, 65, 100, 144, 196, 255, 322, 398, 480, 571, 670, 776, 891, 1013, 1143, 1281, 1427,
+                1580, 1743, 1911, 2089
+            ];
+
+            function computeSeatPositions(totalDots) {
+                // Determine how many benches (rows) are needed
+                let benches = 1;
+                while (benches < TOTALS.length && totalDots > TOTALS[benches]) {
+                    benches++;
+                }
+                if (benches >= TOTALS.length) benches = TOTALS.length;
+
+                const dd = DIMR / benches; // distance between arches (row thickness)
+                const dotRadius = 0.7 * dd; // size of the circles
+
+                let list = []; // array of { angle: 0..1, radius: number }
+                let dotsPlaced = 0;
+
+                // Place dots on all rows except the outermost
+                for (let rg = 0; rg < benches - 1; rg++) {
+                    const rr = DIMX - dd * (2 * rg + 1); // radius of this row
+                    const jj = Math.floor((totalDots / TOTALS[benches]) * Math.PI / (2 * Math.asin(dd / rr))) + 1;
+                    if (jj === 1) {
+                        list.push({ angle: 0.5, radius: rr });
+                        dotsPlaced++;
+                    } else {
+                        for (let ps = 0; ps < jj; ps++) {
+                            const aa = ps / (jj - 1);
+                            list.push({ angle: aa, radius: rr });
+                            dotsPlaced++;
+                        }
+                    }
+                }
+
+                // Place remaining dots on the outermost row
+                const jj = totalDots - dotsPlaced;
+                const rr = DIMX - dd * (2 * benches - 1);
+                if (jj === 1) {
+                    list.push({ angle: 0.5, radius: rr });
+                } else if (jj > 1) {
+                    for (let ps = 0; ps < jj; ps++) {
+                        const aa = ps / (jj - 1);
+                        list.push({ angle: aa, radius: rr });
+                    }
+                }
+
+                // Sort by increasing angle, then by increasing radius
+                list.sort((a, b) => {
+                    if (a.angle !== b.angle) return a.angle - b.angle;
+                    return a.radius - b.radius;
+                });
+
+                // Convert to Cartesian coordinates
+                return list.map(dot => {
+                    const px = DIMX - dot.radius * Math.cos(Math.PI * dot.angle);
+                    const py = DIMC + dot.radius * Math.sin(Math.PI * dot.angle);
+                    return { x: px, y: py, radius: dot.radius, angle: dot.angle };
+                });
+            }
+
             function renderParliament() {
                 const svg = document.getElementById('parliamentSvg');
                 const total = state.totalSeats;
@@ -598,130 +667,41 @@
                 const assigned = parties.reduce((s, p) => s + p.seats, 0);
                 const unassigned = Math.max(0, total - assigned);
 
-                // Determine rows – each row is a bench arc
-                let seatsRemaining = total;
-                const rows = [];
-                let rowNum = 1;
-                while (seatsRemaining > 0) {
-                    const maxInRow = 2 * rowNum + 1; // 3,5,7,9,…
-                    const actual = Math.min(maxInRow, seatsRemaining);
-                    rows.push({ index: rowNum, seats: actual });
-                    seatsRemaining -= actual;
-                    rowNum++;
-                }
-                const numRows = rows.length;
-                const cx = 500,
-                    cy = 510;
-                const rMin = 90,
-                    rMax = 380;
-                const angleStart = Math.PI * 0.94,
-                    angleEnd = Math.PI * 0.06,
-                    angleSpan = angleStart - angleEnd;
+                const positions = computeSeatPositions(total);
+                const dotRadius = 0.7 * (DIMR / Math.max(1, TOTALS.findIndex(t => t >= total) + 1));
 
-                // Build flat list of seat positions (NO random jitter)
-                const allSeats = [];
-                rows.forEach((row, rowIdx) => {
-                    const t = numRows > 1 ? rowIdx / (numRows - 1) : 0.5;
-                    const r = rMin + t * (rMax - rMin);
-                    const n = row.seats;
-                    for (let s = 0; s < n; s++) {
-                        const frac = n > 1 ? s / (n - 1) : 0.5;
-                        const angle = angleStart - frac * angleSpan;
-                        const x = cx + r * Math.cos(angle);
-                        const y = cy - r * Math.sin(angle);
-                        allSeats.push({ x, y, rowIdx, seatIdx: s, rowTotal: n, r, angle });
-                    }
-                });
-
-                // Assign parties
-                let seatIdx = 0;
+                // Assign parties to positions (in angle order)
+                let posIdx = 0;
                 const assignments = [];
                 parties.forEach(p => {
-                    for (let i = 0; i < p.seats && seatIdx < allSeats.length; i++) {
-                        assignments.push({ ...allSeats[seatIdx], party: p, governing: p.governing });
-                        seatIdx++;
+                    for (let i = 0; i < p.seats && posIdx < positions.length; i++) {
+                        assignments.push({ ...positions[posIdx], party: p, governing: p.governing });
+                        posIdx++;
                     }
                 });
-                while (seatIdx < allSeats.length) {
-                    assignments.push({ ...allSeats[seatIdx], party: null, governing: false });
-                    seatIdx++;
+                while (posIdx < positions.length) {
+                    assignments.push({ ...positions[posIdx], party: null, governing: false });
+                    posIdx++;
                 }
 
                 // Build SVG
-                let svgContent = `
-                <defs>
-                  <!-- Chamber floor gradient -->
-                  <radialGradient id="chamberFloor" cx="50%" cy="80%" r="55%">
-                    <stop offset="0%" stop-color="#3a3020" stop-opacity="0.9"/>
-                    <stop offset="100%" stop-color="#0f0d08" stop-opacity="1"/>
-                  </radialGradient>
-                  <!-- Warm ceiling glow -->
-                  <radialGradient id="ceilingGlow" cx="50%" cy="10%" r="65%">
-                    <stop offset="0%" stop-color="#f5e6c8" stop-opacity="0.12"/>
-                    <stop offset="100%" stop-color="#000" stop-opacity="0"/>
-                  </radialGradient>
-                  <!-- Bench wood gradient -->
-                  <linearGradient id="benchWood" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#6b4c2a"/>
-                    <stop offset="40%" stop-color="#5a3d1e"/>
-                    <stop offset="100%" stop-color="#3a2510"/>
-                  </linearGradient>
-                  <!-- Shadow filter for benches -->
-                  <filter id="benchShadow" x="-5%" y="-5%" width="110%" height="120%">
-                    <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#000" flood-opacity="0.6"/>
-                  </filter>
-                  <!-- Glow for governing MPs -->
-                  <filter id="govGlow" x="-40%" y="-40%" width="180%" height="180%">
-                    <feGaussianBlur stdDeviation="3" result="blur"/>
-                    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                  </filter>
-                </defs>
+                let svgContent = `<rect width="360" height="185" fill="#fff"/>`;
 
-                <!-- Background -->
-                <rect width="1000" height="580" fill="#0a0a10"/>
-                <rect width="1000" height="580" fill="url(#chamberFloor)"/>
-                <rect width="1000" height="580" fill="url(#ceilingGlow)"/>
-
-                <!-- Chamber walls / wood panelling -->
-                <path d="M60,80 Q500,-30 940,80" fill="none" stroke="#2a1f10" stroke-width="12"/>
-                <path d="M60,80 Q500,-30 940,80" fill="none" stroke="#4a3520" stroke-width="3" opacity="0.5"/>
-
-                <!-- Side columns -->
-                <rect x="70" y="70" width="16" height="420" rx="3" fill="#2a1f10" stroke="#4a3520" stroke-width="1"/>
-                <rect x="914" y="70" width="16" height="420" rx="3" fill="#2a1f10" stroke="#4a3520" stroke-width="1"/>
-
-                <!-- Central aisle (subtle) -->
-                <path d="M${cx},${cy - rMin + 25} L${cx},${cy - rMax - 25}" stroke="#2a2010" stroke-width="14" opacity="0.5"/>
-                <path d="M${cx},${cy - rMin + 25} L${cx},${cy - rMax - 25}" stroke="#4a3520" stroke-width="2" opacity="0.3"/>
-
-                <!-- Speaker's dais -->
-                <rect x="470" y="${cy - rMin + 15}" width="60" height="20" rx="6" fill="#5a3d1e" stroke="#8a6030" stroke-width="1.5" filter="url(#benchShadow)"/>
-                <text x="500" y="${cy - rMin + 29}" text-anchor="middle" fill="#e8d5a3" font-size="8" font-family="Inter, sans-serif" font-weight="bold">SPEAKER</text>
-                `;
-
-                // Draw each seat as a small bench + coloured puck
-                const benchW = 13,
-                    benchH = 8,
-                    puckR = 4;
+                // Draw each seat dot
                 assignments.forEach(seat => {
-                    const color = seat.party ? seat.party.color : '#5a5a5a';
+                    const color = seat.party ? seat.party.color : '#ccc';
                     const name = seat.party ? seat.party.name : 'Unassigned';
-                    const govClass = seat.governing ? ' governing-glow' : '';
-                    const govFilter = seat.governing ? 'filter="url(#govGlow)"' :
-                        'filter="url(#benchShadow)"';
-                    const glowStroke = seat.governing ? '#ffd866' : 'rgba(255,255,255,0.25)';
-                    const benchX = seat.x - benchW / 2;
-                    const benchY = seat.y - benchH / 2;
-
+                    const stroke = seat.governing ? '#000' : '#888';
+                    const strokeWidth = seat.governing ? '1.2' : '0.6';
                     svgContent += `
-                    <g class="seat-group${govClass}" data-party="${name}" data-governing="${seat.governing}" ${govFilter}>
-                      <!-- Bench -->
-                      <rect x="${benchX.toFixed(1)}" y="${benchY.toFixed(1)}" width="${benchW}" height="${benchH}" rx="3" fill="url(#benchWood)" stroke="#2a1a08" stroke-width="0.8"/>
-                      <!-- MP puck -->
-                      <circle cx="${seat.x.toFixed(1)}" cy="${seat.y.toFixed(1)}" r="${puckR}" fill="${color}" stroke="${glowStroke}" stroke-width="1.2"/>
+                    <circle cx="${seat.x.toFixed(2)}" cy="${seat.y.toFixed(2)}" r="${dotRadius.toFixed(2)}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}" class="seat-dot" data-party="${name}" data-governing="${seat.governing}">
                       <title>${name}${seat.governing ? ' (Governing)' : ''}</title>
-                    </g>`;
+                    </circle>`;
                 });
+
+                // Total seat count label (centered at bottom)
+                svgContent +=
+                    `<text x="${DIMX}" y="${DIMC + 18}" text-anchor="middle" fill="#000" font-family="Helvetica, Arial, sans-serif" font-size="9" font-weight="bold">${total}</text>`;
 
                 svg.innerHTML = svgContent;
                 document.getElementById('seatSummary').textContent = `${total} total seats | ${unassigned} unassigned`;
@@ -742,7 +722,6 @@
                       <button class="btn-sm" onclick="event.stopPropagation();adjustSeats(${idx},-1)">−</button>
                       <button class="btn-sm" onclick="event.stopPropagation();adjustSeats(${idx},1)">+</button>
                       <button class="btn-sm" style="background:#5a2a22;border-color:#8a3a2a;color:#faa;" onclick="event.stopPropagation();removeParty(${idx})">×</button>
-                      <button class="btn-sm" style="background:transparent;border:1px solid #666;" onclick="event.stopPropagation();highlightParty('${p.name}')" title="Highlight">🔍</button>
                     </div>`;
                 });
                 if (unassigned > 0) html +=
@@ -750,18 +729,7 @@
                 container.innerHTML = html;
             }
 
-            window.highlightParty = (partyName) => {
-                const groups = document.querySelectorAll('#parliamentSvg .seat-group');
-                groups.forEach(g => {
-                    const p = g.getAttribute('data-party');
-                    if (!partyName || p === partyName) {
-                        g.style.opacity = '1';
-                    } else {
-                        g.style.opacity = '0.25';
-                    }
-                });
-            };
-
+            // ─── Party interactions ───
             window.adjustSeats = (idx, delta) => {
                 const p = state.parties[idx];
                 const newSeats = p.seats + delta;
@@ -807,9 +775,7 @@
             function refresh() { renderParliament();
                 persist(); }
 
-            // ──────────────────────────────────────────────
-            //  HISTORY
-            // ──────────────────────────────────────────────
+            // ─── History ───
             function renderHistory() {
                 const container = document.getElementById('historyTimeline');
                 if (!state.history.length) { container.innerHTML = '<p>No saved governments yet.</p>'; return; }
@@ -841,9 +807,7 @@
                 closeModalDirect();
                 toast('Parliament restored!'); };
 
-            // ──────────────────────────────────────────────
-            //  ECONOMIC REPORT
-            // ──────────────────────────────────────────────
+            // ─── Economic Report ───
             window.generateReport = () => {
                 const country = document.getElementById('ecoCountry').value || 'Unknown';
                 const year = document.getElementById('ecoYear').value || '18--';
@@ -901,9 +865,7 @@
                     persist();
                     renderSavedReports(); } };
 
-            // ──────────────────────────────────────────────
-            //  SCREENSHOTS
-            // ──────────────────────────────────────────────
+            // ─── Screenshots ───
             window.handleFileUpload = (e) => {
                 const files = e.target.files;
                 if (!files.length) return;
