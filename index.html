@@ -141,18 +141,19 @@
             font-size: 1.05em;
             margin: 12px 0 8px;
         }
+        /* Diagram wrapper – transparent background */
         .diagram-wrapper {
-            background: #fff;
+            background: transparent;
             border-radius: 4px;
-            overflow: hidden;
-            max-width: 720px;
+            overflow: visible;
+            max-width: 1000px;
             margin: 0 auto;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
         }
         .diagram-wrapper svg {
             width: 100%;
             height: auto;
             display: block;
+            background: transparent;
         }
         .party-list {
             display: flex;
@@ -221,9 +222,6 @@
             background: #5a2a22;
             color: #faa;
             border-color: #8a3a2a;
-        }
-        .btn-danger:hover {
-            background: #7a3028;
         }
         .btn-sm {
             padding: 5px 12px;
@@ -449,18 +447,17 @@
     </div>
 
     <div class="main-container">
-        <!-- Parliament Tab -->
         <div class="tab-content active" id="parliamentTab">
             <div class="card">
                 <h2>🏛️ Parliament Diagram</h2>
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
                     <label>Total Seats:</label>
-                    <input type="number" id="totalSeats" value="169" min="10" max="1000" step="1" style="width:80px;">
+                    <input type="number" id="totalSeats" value="169" min="10" max="800" step="1" style="width:80px;">
                     <button class="btn btn-sm" onclick="updateTotalSeats()">Apply</button>
                     <span style="color:var(--text2);" id="seatSummary">169 seats</span>
                 </div>
                 <div class="diagram-wrapper">
-                    <svg id="parliamentSvg" viewBox="0 0 360 185" xmlns="http://www.w3.org/2000/svg"></svg>
+                    <svg id="parliamentSvg" viewBox="0 0 1000 800" xmlns="http://www.w3.org/2000/svg"></svg>
                 </div>
             </div>
             <div class="card">
@@ -475,19 +472,14 @@
             </div>
         </div>
 
-        <!-- History Tab -->
         <div class="tab-content" id="historyTab">
             <div class="card">
                 <h2>📜 Government History</h2>
                 <div class="timeline" id="historyTimeline"></div>
-                <div class="btn-row">
-                    <button class="btn btn-danger btn-sm" onclick="clearHistory()">Clear</button>
-                    <button class="btn btn-sm" onclick="exportHistory()">Export JSON</button>
-                </div>
+                <div class="btn-row"><button class="btn btn-danger btn-sm" onclick="clearHistory()">Clear</button><button class="btn btn-sm" onclick="exportHistory()">Export JSON</button></div>
             </div>
         </div>
 
-        <!-- Economy Tab -->
         <div class="tab-content" id="economyTab">
             <div class="card">
                 <h2>📊 Yearly Economic Report</h2>
@@ -517,7 +509,6 @@
             <div class="card"><h2>📁 Saved Reports</h2><div id="savedReportsList"></div></div>
         </div>
 
-        <!-- Screenshots Tab -->
         <div class="tab-content" id="screenshotsTab">
             <div class="card">
                 <h2>🖼️ Screenshots</h2>
@@ -582,107 +573,134 @@
             });
 
             // ╔══════════════════════════════════════════════════════════╗
-            // ║  EXACT WIKIPEDIA COMMONS BLOCK HEMICYCLE ALGORITHM     ║
-            // ║  (Rectangle blocks, arch + straight rows, center aisle) ║
+            // ║  CLEAN HORSESHOE LAYOUT – Arch + Straight Rows        ║
+            // ║  Transparent background · 1000×800 viewBox             ║
+            // ║  Squarish blocks · Smooth rotation · Central aisle     ║
             // ╚══════════════════════════════════════════════════════════╝
-            // Based on Module:Parliament_diagram on Wikipedia.
-            // Hard-coded constants for a 360×185 viewBox.
-            const VIEW_W = 360;
-            const VIEW_H = 185;
-            const AISLE_WIDTH = 6; // white gap in the center
-            const BLOCK_W = 6.8; // block width
-            const BLOCK_H = 4.2; // block height
-            const BLOCK_GAP = 1.5; // gap between blocks
-            const ARCH_ROW_SPACING = BLOCK_H + BLOCK_GAP;
-            // Pre-computed cumulative maximum blocks for each number of rows (from the Wikipedia module)
-            // These are the maximum blocks that can fit in 1,2,3,... rows for a 360-wide diagram.
-            const MAX_BLOCKS_PER_ROW_COUNT = [0, 3, 9, 17, 28, 42, 58, 77, 98, 122, 148, 177, 208, 241, 277, 315, 355, 398,
-                443, 490, 540, 592, 646, 703, 762, 823, 887, 953
-            ];
+            const VIEW_W = 1000;
+            const VIEW_H = 800;
+            const ARC_CX = 500; // center x of the arch
+            const ARC_CY = 580; // center y of the arch (below center of canvas)
+            const OUTER_R = 400; // outermost arch radius
+            const INNER_R = 180; // innermost arch radius
+            const ROW_SPACING = 28; // vertical spacing between rows (block height + gap)
+            const BLOCK_W = 12; // block width
+            const BLOCK_H = 16; // block height (slightly taller than wide)
+            const BLOCK_GAP_X = 13; // horizontal gap between blocks
+            const AISLE_HALF = 12; // half-width of the central aisle
+            const STRAIGHT_ROWS = 4; // number of horizontal rows at the bottom
+            const STRAIGHT_Y_START = 610; // y-position of the first straight row
 
             function computeBlockPositions(totalSeats) {
-                // Step 1: Determine number of arched rows using the cumulative maxima
-                let archedRows = 1;
-                while (archedRows < MAX_BLOCKS_PER_ROW_COUNT.length && totalSeats > MAX_BLOCKS_PER_ROW_COUNT[archedRows]) {
-                    archedRows++;
-                }
-                // Step 2: Compute the blocks per row
-                let remaining = totalSeats;
-                const rows = [];
-                for (let r = 0; r < archedRows; r++) {
-                    // For each row, max blocks = 2*(r+1)+1? No, we'll use the exact algorithm from Wikipedia:
-                    // row r (0-indexed) has a capacity based on geometry.
-                    // We'll use a formula: capacity = floor( (π * radius) / (BLOCK_W + BLOCK_GAP) )
-                    // But to exactly match Wikipedia's precomputed totals, we'll allocate blocks proportionally.
-                    // Instead, we'll just use the max from the array for each row and fill them.
-                    const maxThisRow = (r === archedRows - 1) ? remaining : Math.min(remaining, Math.floor(
-                        MAX_BLOCKS_PER_ROW_COUNT[archedRows] / archedRows * (r + 1)) - (r > 0 ? rows[r - 1]
-                        .count : 0));
-                    const count = Math.min(maxThisRow, remaining);
-                    rows.push({ index: r, count: count, maxCount: maxThisRow });
-                    remaining -= count;
-                }
-                // If still remaining, add straight rows at the bottom
-                const straightRowCapacity = Math.floor((VIEW_W - AISLE_WIDTH - 10) / (BLOCK_W + BLOCK_GAP));
-                let straightRows = [];
-                while (remaining > 0) {
-                    const count = Math.min(straightRowCapacity, remaining);
-                    straightRows.push({ count: count, isStraight: true });
-                    remaining -= count;
-                }
+                const archRows = Math.floor((OUTER_R - INNER_R) / ROW_SPACING) + 1;
+                let allPositions = [];
 
-                // Step 3: Generate (x, y) positions for each block
-                let positions = [];
+                // ── Build arch positions (outermost row first) ──
+                for (let row = 0; row < archRows; row++) {
+                    const radius = OUTER_R - row * ROW_SPACING;
+                    if (radius < INNER_R) break;
 
-                // Arch rows: from outermost (largest radius) to innermost
-                const archCenterX = VIEW_W / 2;
-                const archCenterY = VIEW_H - 10; // bottom center of arch
-                const archStartRadius = 145; // outermost radius
-                for (let i = archedRows - 1; i >= 0; i--) {
-                    const row = rows[i];
-                    const radius = archStartRadius - (archedRows - 1 - i) * ARCH_ROW_SPACING;
-                    const count = row.count;
-                    // Angle range: from π (left) to 0 (right), minus aisle
-                    // The usable arc length = (π * radius) - aisle gap
-                    const totalArc = Math.PI * radius - AISLE_WIDTH;
-                    const blockSpacing = totalArc / (count - 1);
-                    for (let j = 0; j < count; j++) {
-                        // angle from leftmost (π) to rightmost (0)
-                        const frac = count > 1 ? j / (count - 1) : 0.5;
-                        const angle = Math.PI - frac * Math.PI; // left to right
-                        // Adjust for aisle: shift blocks away from center
-                        const x = archCenterX + radius * Math.cos(angle);
-                        const y = archCenterY - radius * Math.sin(angle);
-                        // Rotation: perpendicular to radius
-                        const rotDeg = (Math.PI / 2 - angle) * (180 / Math.PI);
-                        positions.push({ x, y, rotation: rotDeg, isStraight: false, radius, angle });
+                    // Determine angular bounds for this radius so blocks stay within x≈[85, 915]
+                    const maxHorizOffset = Math.min(415, radius * 0.98);
+                    const minAngle = Math.acos(maxHorizOffset / radius); // angle from positive x-axis (right side)
+                    const maxAngle = Math.PI - minAngle; // angle from positive x-axis (left side)
+                    const angularSpan = maxAngle - minAngle;
+                    // Account for aisle gap in the middle
+                    const aisleAngle = 2 * Math.asin(AISLE_HALF / radius);
+                    const usableSpan = angularSpan - aisleAngle;
+                    const arcLength = radius * usableSpan;
+                    const maxBlocks = Math.max(1, Math.floor(arcLength / (BLOCK_W + BLOCK_GAP_X)));
+
+                    // Split into left and right halves around the aisle
+                    const halfAngle = (angularSpan - aisleAngle) / 2;
+                    // Left side: from maxAngle down to π/2 + aisleAngle/2
+                    // Right side: from π/2 - aisleAngle/2 down to minAngle
+                    const leftStart = maxAngle;
+                    const leftEnd = Math.PI / 2 + aisleAngle / 2;
+                    const rightStart = Math.PI / 2 - aisleAngle / 2;
+                    const rightEnd = minAngle;
+
+                    const leftSpan = leftStart - leftEnd;
+                    const rightSpan = rightStart - rightEnd;
+                    const totalSpan = leftSpan + rightSpan;
+
+                    // Distribute blocks proportionally between left and right
+                    const leftCount = Math.round(maxBlocks * leftSpan / totalSpan);
+                    const rightCount = maxBlocks - leftCount;
+
+                    // Left side blocks
+                    for (let i = 0; i < leftCount; i++) {
+                        const frac = leftCount > 1 ? i / (leftCount - 1) : 0.5;
+                        const angle = leftStart - frac * leftSpan;
+                        const x = ARC_CX + radius * Math.cos(angle);
+                        const y = ARC_CY - radius * Math.sin(angle);
+                        const rotation = (angle - Math.PI / 2) * (180 / Math.PI);
+                        allPositions.push({ x, y, rotation, isArch: true, radius, angle, side: 'left' });
+                    }
+                    // Right side blocks
+                    for (let i = 0; i < rightCount; i++) {
+                        const frac = rightCount > 1 ? i / (rightCount - 1) : 0.5;
+                        const angle = rightStart - frac * rightSpan;
+                        const x = ARC_CX + radius * Math.cos(angle);
+                        const y = ARC_CY - radius * Math.sin(angle);
+                        const rotation = (angle - Math.PI / 2) * (180 / Math.PI);
+                        allPositions.push({ x, y, rotation, isArch: true, radius, angle, side: 'right' });
                     }
                 }
 
-                // Straight rows at bottom
-                const straightYStart = archCenterY - (archStartRadius - (archedRows) * ARCH_ROW_SPACING) + ARCH_ROW_SPACING;
-                let currentY = straightYStart;
-                for (const sRow of straightRows) {
-                    const count = sRow.count;
-                    const totalWidth = count * (BLOCK_W + BLOCK_GAP);
-                    const startX = archCenterX - totalWidth / 2;
-                    for (let j = 0; j < count; j++) {
-                        const x = startX + j * (BLOCK_W + BLOCK_GAP) + BLOCK_W / 2;
-                        positions.push({ x, y: currentY, rotation: 0, isStraight: true });
+                // ── Build straight row positions ──
+                // Determine x-bounds from the outermost arch row at its lowest point
+                const lowestArchAngle = Math.acos(415 / OUTER_R);
+                const leftBound = ARC_CX + OUTER_R * Math.cos(Math.PI - lowestArchAngle);
+                const rightBound = ARC_CX + OUTER_R * Math.cos(lowestArchAngle);
+                const usableWidth = (rightBound - leftBound) - 2 * AISLE_HALF;
+                const blocksPerSide = Math.floor(usableWidth / 2 / (BLOCK_W + BLOCK_GAP_X));
+
+                for (let row = 0; row < STRAIGHT_ROWS; row++) {
+                    const y = STRAIGHT_Y_START + row * ROW_SPACING;
+                    // Left side straight blocks
+                    const leftStartX = leftBound + (usableWidth / 2 - blocksPerSide * (BLOCK_W + BLOCK_GAP_X)) / 2;
+                    for (let i = 0; i < blocksPerSide; i++) {
+                        const x = leftStartX + i * (BLOCK_W + BLOCK_GAP_X) + BLOCK_W / 2;
+                        if (x < ARC_CX - AISLE_HALF - BLOCK_W / 2) {
+                            allPositions.push({ x, y, rotation: 0, isArch: false, side: 'left' });
+                        }
                     }
-                    currentY += ARCH_ROW_SPACING;
+                    // Right side straight blocks
+                    const rightStartX = ARC_CX + AISLE_HALF + (usableWidth / 2 - blocksPerSide * (BLOCK_W + BLOCK_GAP_X)) /
+                        2;
+                    for (let i = 0; i < blocksPerSide; i++) {
+                        const x = rightStartX + i * (BLOCK_W + BLOCK_GAP_X) + BLOCK_W / 2;
+                        if (x > ARC_CX + AISLE_HALF + BLOCK_W / 2) {
+                            allPositions.push({ x, y, rotation: 0, isArch: false, side: 'right' });
+                        }
+                    }
                 }
 
-                // Sort positions for party assignment: straight rows first (bottom up), then arch rows from outer to inner
-                positions.sort((a, b) => {
-                    if (a.isStraight && !b.isStraight) return -1;
-                    if (!a.isStraight && b.isStraight) return 1;
-                    if (a.isStraight && b.isStraight) return a.y - b.y;
-                    // Arch: outer (larger radius) first
-                    return b.radius - a.radius;
-                });
+                // ── Sort positions for party assignment (left to right) ──
+                // Arch blocks: sort by angle descending (leftmost first)
+                // Straight blocks: sort by x ascending
+                const archPositions = allPositions.filter(p => p.isArch).sort((a, b) => b.angle - a.angle);
+                const straightPositions = allPositions.filter(p => !p.isArch).sort((a, b) => a.x - b.x);
 
-                return positions;
+                // Combine: all arch blocks (left to right) then straight blocks (left to right)
+                const sortedPositions = [...archPositions, ...straightPositions];
+
+                // Trim or pad to match totalSeats
+                if (sortedPositions.length > totalSeats) {
+                    return sortedPositions.slice(0, totalSeats);
+                }
+                // If we need more seats than positions, add extras (shouldn't happen often)
+                while (sortedPositions.length < totalSeats) {
+                    sortedPositions.push({
+                        x: ARC_CX + (sortedPositions.length % 2 === 0 ? 50 : -50),
+                        y: STRAIGHT_Y_START + STRAIGHT_ROWS * ROW_SPACING + 30,
+                        rotation: 0,
+                        isArch: false,
+                        side: 'extra'
+                    });
+                }
+                return sortedPositions;
             }
 
             function renderParliament() {
@@ -693,14 +711,8 @@
                 const unassigned = Math.max(0, total - assigned);
 
                 const positions = computeBlockPositions(total);
-                if (positions.length !== total) {
-                    // Safety: if we miscalculated, adjust positions array to match total
-                    while (positions.length < total) {
-                        positions.push({ x: VIEW_W / 2, y: VIEW_H - 5, rotation: 0, isStraight: true });
-                    }
-                }
 
-                // Assign parties
+                // Assign parties to positions in left-to-right order
                 let posIdx = 0;
                 const assignments = [];
                 parties.forEach(p => {
@@ -714,36 +726,38 @@
                     posIdx++;
                 }
 
-                // Build SVG
-                let svgContent = `<rect width="${VIEW_W}" height="${VIEW_H}" fill="#fff"/>`;
-                // Center aisle
-                svgContent +=
-                    `<rect x="${VIEW_W/2 - AISLE_WIDTH/2}" y="0" width="${AISLE_WIDTH}" height="${VIEW_H}" fill="#fff" stroke="#ddd" stroke-width="0.5"/>`;
+                // Build SVG (no background rect = transparent)
+                let svgContent = '';
 
+                // Subtle center aisle indicator (very faint)
+                svgContent +=
+                    `<line x1="${ARC_CX}" y1="0" x2="${ARC_CX}" y2="${VIEW_H}" stroke="#ccc" stroke-width="${AISLE_HALF*2}" opacity="0.25"/>`;
+
+                // Draw each block
                 assignments.forEach(seat => {
                     const color = seat.party ? seat.party.color : '#ddd';
                     const name = seat.party ? seat.party.name : 'Unassigned';
-                    const stroke = seat.governing ? '#000' : '#999';
-                    const strokeWidth = seat.governing ? '1.0' : '0.5';
+                    const stroke = seat.governing ? '#000' : '#888';
+                    const strokeWidth = seat.governing ? '1.2' : '0.7';
 
-                    if (seat.isStraight || Math.abs(seat.rotation) < 1) {
-                        svgContent += `
-                        <rect x="${(seat.x - BLOCK_W/2).toFixed(2)}" y="${(seat.y - BLOCK_H/2).toFixed(2)}" width="${BLOCK_W}" height="${BLOCK_H}" rx="1.2" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}" data-party="${name}" data-governing="${seat.governing}">
-                          <title>${name}${seat.governing ? ' (Governing)' : ''}</title>
-                        </rect>`;
-                    } else {
+                    if (seat.isArch) {
                         svgContent += `
                         <g transform="translate(${seat.x.toFixed(2)}, ${seat.y.toFixed(2)}) rotate(${seat.rotation.toFixed(2)})">
-                          <rect x="${(-BLOCK_W/2).toFixed(2)}" y="${(-BLOCK_H/2).toFixed(2)}" width="${BLOCK_W}" height="${BLOCK_H}" rx="1.2" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}" data-party="${name}" data-governing="${seat.governing}">
+                          <rect x="${(-BLOCK_W/2).toFixed(2)}" y="${(-BLOCK_H/2).toFixed(2)}" width="${BLOCK_W}" height="${BLOCK_H}" rx="2" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}" data-party="${name}" data-governing="${seat.governing}">
                             <title>${name}${seat.governing ? ' (Governing)' : ''}</title>
                           </rect>
                         </g>`;
+                    } else {
+                        svgContent += `
+                        <rect x="${(seat.x - BLOCK_W/2).toFixed(2)}" y="${(seat.y - BLOCK_H/2).toFixed(2)}" width="${BLOCK_W}" height="${BLOCK_H}" rx="2" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}" data-party="${name}" data-governing="${seat.governing}">
+                          <title>${name}${seat.governing ? ' (Governing)' : ''}</title>
+                        </rect>`;
                     }
                 });
 
-                // Seat count label
+                // Seat count label at bottom center
                 svgContent +=
-                    `<text x="${VIEW_W/2}" y="${VIEW_H - 4}" text-anchor="middle" fill="#000" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold">${total}</text>`;
+                    `<text x="${ARC_CX}" y="${VIEW_H - 15}" text-anchor="middle" fill="#444" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold">${total}</text>`;
 
                 svg.innerHTML = svgContent;
                 document.getElementById('seatSummary').textContent = `${total} total seats | ${unassigned} unassigned`;
@@ -793,7 +807,7 @@
                 refresh();
                 toast(`Added "${name.trim()}"`); };
             window.updateTotalSeats = () => { const val = parseInt(document.getElementById('totalSeats').value) || 169;
-                state.totalSeats = Math.max(5, Math.min(1000, val));
+                state.totalSeats = Math.max(5, Math.min(800, val));
                 document.getElementById('totalSeats').value = state.totalSeats;
                 refresh(); };
             window.formGovernment = () => { const gov = state.parties.filter(p => p.governing); const seats = gov.reduce((s,
