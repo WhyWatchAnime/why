@@ -1,1851 +1,1647 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Parliament Studio</title>
-  <style>
-    :root {
-      --bg: #18130d;
-      --panel: #241b12;
-      --panel-2: #2c2115;
-      --ink: #f2dfc7;
-      --muted: #cba36d;
-      --border: #9a6e37;
-      --wood-1: #7a4a1f;
-      --wood-2: #4b270f;
-      --paper-1: #fff4de;
-      --paper-2: #ecd3a6;
-      --good: #6aa36a;
-      --bad: #b9644b;
-      --warn: #d1a21b;
-      --shadow: 0 10px 30px rgba(0,0,0,0.28);
-      font-family: Georgia, "Times New Roman", serif;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: radial-gradient(circle at top, rgba(154,110,55,0.16), transparent 28%), linear-gradient(180deg, #17110c, #261d13 40%, #17110c);
-      color: var(--ink);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    .wrap {
-      max-width: 1440px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .hero, .card {
-      background: rgba(28, 21, 14, 0.82);
-      border: 1px solid rgba(154,110,55,0.55);
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-    }
-    .hero {
-      padding: 0;
-      overflow: hidden;
-      margin-bottom: 18px;
-    }
-    .hero-top {
-      background: linear-gradient(180deg, var(--paper-1), var(--paper-2));
-      color: #4c2f12;
-      padding: 20px 24px;
-      border-bottom: 1px solid rgba(154,110,55,0.28);
-    }
-    .hero-top h1 {
-      margin: 0;
-      font-size: 46px;
-      letter-spacing: 0.06em;
-      font-family: Georgia, serif;
-      font-weight: 600;
-    }
-    .hero-top p {
-      margin: 6px 0 0;
-      font-size: 15px;
-    }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0,1fr));
-      gap: 12px;
-      padding: 18px;
-    }
-    .stat {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(154,110,55,0.28);
-      border-radius: 16px;
-      padding: 14px;
-    }
-    .stat .k {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      color: #b89a76;
-    }
-    .stat .v {
-      font-size: 28px;
-      font-weight: 700;
-      margin-top: 6px;
-      color: var(--ink);
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: 420px minmax(0, 1fr);
-      gap: 18px;
-    }
-    .card {
-      padding: 18px;
-      margin-bottom: 18px;
-    }
-    .card h2, .card h3 {
-      margin: 0 0 8px;
-      font-family: Georgia, serif;
-      font-weight: 600;
-    }
-    .muted { color: #c7a883; }
-    .row { display: grid; gap: 12px; }
-    .row.two { grid-template-columns: repeat(2, minmax(0,1fr)); }
-    .row.three { grid-template-columns: repeat(3, minmax(0,1fr)); }
-    label {
-      display: block;
-      font-size: 13px;
-      margin-bottom: 6px;
-      color: #dbc5ac;
-    }
-    input, select, textarea, button {
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid rgba(154,110,55,0.45);
-      background: rgba(255,255,255,0.04);
-      color: var(--ink);
-      padding: 10px 12px;
-      font: inherit;
-    }
-    input[type="color"] {
-      padding: 4px;
-      min-height: 42px;
-    }
-    textarea { min-height: 180px; resize: vertical; }
-    button {
-      cursor: pointer;
-      background: linear-gradient(180deg, #3b2b1a, #2b1f13);
-      transition: transform .12s ease, border-color .12s ease;
-    }
-    button:hover { transform: translateY(-1px); border-color: rgba(210,162,84,0.9); }
-    .btns {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .btns button { width: auto; }
-    .subcard {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(154,110,55,0.28);
-      border-radius: 16px;
-      padding: 14px;
-    }
-    .tabs {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
-    }
-    .tab {
-      width: auto;
-      padding: 10px 14px;
-    }
-    .tab.active {
-      background: linear-gradient(180deg, #574121, #3f2c16);
-      border-color: rgba(219,177,104,0.95);
-    }
-    .tab-panel { display: block; }
-    .hidden { display: none !important; }
-    .legend-row, .party-editor-row, .history-item, .timeline-item, .bill-item, .coalition-item {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(154,110,55,0.28);
-      border-radius: 16px;
-      padding: 12px;
-    }
-    .legend-row {
-      display: grid;
-      grid-template-columns: minmax(0,1fr) 70px 70px 70px;
-      gap: 10px;
-      align-items: center;
-    }
-    .party-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-    .swatch {
-      width: 14px;
-      height: 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.25);
-      flex: 0 0 auto;
-    }
-    .party-editor-row {
-      display: grid;
-      grid-template-columns: 1.1fr 90px 74px 1fr 1fr 1fr 44px;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .range-wrap {
-      display: grid;
-      gap: 4px;
-    }
-    .range-wrap small { color: #b89a76; }
-    .delete-btn {
-      padding: 10px 0;
-      text-align: center;
-    }
-    .chamber-shell {
-      background: linear-gradient(180deg, #2b2314, #21190f);
-      border: 1px solid rgba(190,145,84,0.8);
-      border-radius: 28px;
-      padding: 16px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      width: 100%;
-    }
-    .chamber-shell.large { padding: 18px; }
-    svg { width: 100%; height: auto; display: block; }
-    #lowerChamber .chamber-shell, #upperChamber .chamber-shell { min-height: 520px; }
-    #presentationLower .chamber-shell, #presentationUpper .chamber-shell { min-height: 1100px; }
-    #lowerChamber svg, #upperChamber svg { min-height: 480px; }
-    #presentationLower svg, #presentationUpper svg { min-height: 1040px; }
-    .chamber-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 18px;
-    }
-    .presentation-grid {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 18px;
-    }
-    .groups {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
-      gap: 14px;
-    }
-    .dropzone {
-      min-height: 240px;
-      border: 1px solid rgba(154,110,55,0.35);
-      border-radius: 18px;
-      padding: 12px;
-      background: rgba(255,255,255,0.03);
-    }
-    .dropzone h4 { margin: 0 0 12px; }
-    .tooltip{position:fixed;pointer-events:none;background:rgba(24,18,12,.96);color:#f3dfc4;border:1px solid rgba(186,138,73,.7);border-radius:10px;padding:8px 10px;font-size:12px;z-index:9999;box-shadow:var(--shadow);display:none;max-width:240px}
-    .action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-    .compat{font-size:12px;color:#c7a883;margin-top:6px}
-    .drag-party {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-      padding: 10px;
-      border-radius: 12px;
-      background: rgba(0,0,0,0.12);
-      border: 1px solid rgba(154,110,55,0.25);
-      cursor: grab;
-    }
-    .coalitions-grid, .split-two {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 14px;
-    }
-    .bar {
-      height: 8px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 999px;
-      overflow: hidden;
-      margin-top: 8px;
-    }
-    .bar > span {
-      display: block;
-      height: 100%;
-      background: linear-gradient(90deg, #f3dfbc, #ca9a52);
-    }
-    .timeline-item, .bill-item, .history-item { margin-bottom: 10px; }
-    .mini { font-size: 12px; color: #b89a76; }
-    .title-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .right { text-align: right; }
-    .center { text-align: center; }
-    .pill {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(154,110,55,0.45);
-      background: rgba(255,255,255,0.03);
-      font-size: 12px;
-    }
-    .pass { color: #dff6df; border-color: rgba(106,163,106,0.7); }
-    .fail { color: #ffe2da; border-color: rgba(185,100,75,0.7); }
-    @media (max-width: 1150px) {
-      .grid, .presentation-grid, .chamber-grid, .split-two, .coalitions-grid { grid-template-columns: 1fr; }
-      .groups { grid-template-columns: 1fr; }
-      .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
-      .party-editor-row { grid-template-columns: 1fr; }
-      .legend-row { grid-template-columns: 1fr 70px 70px 70px; }
-    }
-    @media (max-width: 700px) {
-      .stats, .row.two, .row.three { grid-template-columns: 1fr; }
-      .hero-top h1 { font-size: 32px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Victoria 3 - Parliament & Economic Report Tool</title>
+    <style>
+        :root {
+            --bg: #1a1a1f;
+            --surface: #24242b;
+            --surface2: #2d2d36;
+            --text: #e0d8cc;
+            --text2: #b0a89a;
+            --gold: #c9a84c;
+            --gold-dim: #8a7030;
+            --red: #b84c3b;
+            --green: #5a8a6a;
+            --blue: #5a7a9a;
+            --border: #3a3a42;
+            --accent: #6b5c3e;
+            --font-heading: 'Georgia', 'Times New Roman', serif;
+            --font-body: 'Segoe UI', system-ui, sans-serif;
+            --radius: 8px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* === HEADER === */
+        .header {
+            background: linear-gradient(180deg, #2a2418 0%, #1e1a14 100%);
+            border-bottom: 2px solid var(--gold-dim);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header .logo {
+            font-family: var(--font-heading);
+            font-size: 1.6em;
+            color: var(--gold);
+            letter-spacing: 1px;
+            white-space: nowrap;
+            text-shadow: 0 0 20px rgba(201, 168, 76, 0.3);
+        }
+        .header .logo span {
+            color: #d4b86a;
+            font-size: 0.7em;
+            display: block;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .nav-tabs {
+            display: flex;
+            gap: 2px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+        .nav-tab {
+            padding: 10px 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text2);
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-size: 0.9em;
+            transition: all 0.25s;
+            border-radius: var(--radius) var(--radius) 0 0;
+            position: relative;
+            white-space: nowrap;
+        }
+        .nav-tab:hover {
+            color: var(--gold);
+            background: #2a2a32;
+            border-color: var(--gold-dim);
+        }
+        .nav-tab.active {
+            background: var(--surface2);
+            color: var(--gold);
+            border-color: var(--gold) var(--gold) transparent var(--gold);
+            font-weight: bold;
+            box-shadow: 0 -2px 12px rgba(201, 168, 76, 0.15);
+        }
+        .nav-tab .badge {
+            display: inline-block;
+            background: var(--red);
+            color: #fff;
+            border-radius: 10px;
+            padding: 1px 7px;
+            font-size: 0.7em;
+            margin-left: 4px;
+            font-family: var(--font-body);
+        }
+
+        /* === MAIN CONTAINER === */
+        .main-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.35s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* === CARDS === */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+        .card h2 {
+            font-family: var(--font-heading);
+            color: var(--gold);
+            font-size: 1.3em;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+        .card h3 {
+            font-family: var(--font-heading);
+            color: #c9b878;
+            font-size: 1.05em;
+            margin: 12px 0 8px;
+        }
+
+        /* === PARLIAMENT SVG === */
+        .parliament-svg-container {
+            background: #1c1c22;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .parliament-svg-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .seat-circle {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .seat-circle:hover {
+            filter: brightness(1.6);
+            r: 5.5;
+        }
+        .seat-circle.government-seat {
+            filter: drop-shadow(0 0 4px rgba(255, 220, 100, 0.7));
+        }
+
+        /* === PARTY LIST === */
+        .party-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .party-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface2);
+            border: 2px solid transparent;
+            border-radius: 20px;
+            padding: 8px 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9em;
+            user-select: none;
+        }
+        .party-chip:hover {
+            border-color: var(--gold-dim);
+        }
+        .party-chip.governing {
+            border-color: var(--gold);
+            box-shadow: 0 0 10px rgba(201, 168, 76, 0.3);
+        }
+        .party-chip .swatch {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .party-chip .seat-count {
+            font-weight: bold;
+            color: #fff;
+        }
+        .party-chip .party-name {
+            color: var(--text2);
+        }
+        .party-chip .btn-sm {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.8em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            line-height: 1;
+        }
+        .party-chip .btn-sm:hover {
+            background: var(--gold-dim);
+            color: #fff;
+            border-color: var(--gold);
+        }
+
+        /* === BUTTONS === */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-size: 0.9em;
+            border: 1px solid var(--border);
+            transition: all 0.25s;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-primary {
+            background: var(--gold-dim);
+            color: #fff;
+            border-color: var(--gold);
+        }
+        .btn-primary:hover {
+            background: var(--gold);
+            box-shadow: 0 0 16px rgba(201, 168, 76, 0.3);
+        }
+        .btn-secondary {
+            background: var(--surface2);
+            color: var(--text);
+        }
+        .btn-secondary:hover {
+            background: #3a3a44;
+            border-color: #888;
+        }
+        .btn-danger {
+            background: #5a2a22;
+            color: #faa;
+            border-color: #8a3a2a;
+        }
+        .btn-danger:hover {
+            background: #7a3028;
+        }
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 0.8em;
+            border-radius: 14px;
+        }
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        /* === INPUTS === */
+        input[type="text"],
+        input[type="number"],
+        input[type="color"],
+        select,
+        textarea {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: var(--radius);
+            font-family: var(--font-body);
+            font-size: 0.9em;
+            transition: border-color 0.2s;
+        }
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 8px rgba(201, 168, 76, 0.2);
+        }
+        input[type="color"] {
+            width: 36px;
+            height: 32px;
+            padding: 2px;
+            cursor: pointer;
+        }
+        textarea {
+            width: 100%;
+            resize: vertical;
+            min-height: 60px;
+        }
+        label {
+            font-size: 0.85em;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block;
+            margin-bottom: 4px;
+            font-family: var(--font-heading);
+        }
+
+        /* === HISTORY TIMELINE === */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--gold-dim);
+            border-radius: 1px;
+        }
+        .timeline-entry {
+            position: relative;
+            margin-bottom: 20px;
+            padding: 14px 18px;
+            background: var(--surface2);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .timeline-entry:hover {
+            border-color: var(--gold-dim);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        }
+        .timeline-entry::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 18px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--gold);
+            border: 2px solid var(--surface2);
+            box-shadow: 0 0 6px rgba(201, 168, 76, 0.5);
+        }
+        .timeline-entry .date {
+            font-family: var(--font-heading);
+            color: var(--gold);
+            font-size: 0.85em;
+        }
+        .timeline-entry .gov-name {
+            font-weight: bold;
+            font-size: 1.05em;
+        }
+        .timeline-entry .mini-parties {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .mini-party-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* === ECONOMIC REPORT === */
+        .report-paper {
+            background: #faf8f2;
+            color: #2a2418;
+            padding: 40px 36px;
+            border-radius: 4px;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+            max-width: 900px;
+            margin: 0 auto;
+            line-height: 1.7;
+            border: 1px solid #d0c8b0;
+            position: relative;
+        }
+        .report-paper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #8a7030, #c9a84c, #8a7030);
+            border-radius: 4px 4px 0 0;
+        }
+        .report-header {
+            text-align: center;
+            border-bottom: 2px solid #c9a84c;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+        .report-header .bank-name {
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #6b5c3e;
+        }
+        .report-header .report-title {
+            font-size: 1.8em;
+            color: #2a2418;
+            margin: 6px 0;
+            letter-spacing: 1px;
+        }
+        .report-header .country-year {
+            font-size: 1.3em;
+            color: #8a7030;
+            font-style: italic;
+        }
+        .report-section {
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+        .report-section h3 {
+            color: #4a3820;
+            border-bottom: 1px solid #d0c8b0;
+            padding-bottom: 4px;
+            font-size: 1.1em;
+            letter-spacing: 0.5px;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.9em;
+        }
+        .report-table th,
+        .report-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e0d8c8;
+            text-align: left;
+        }
+        .report-table th {
+            background: #f0ece0;
+            color: #4a3820;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+        }
+        .report-table .num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            font-family: 'Courier New', monospace;
+        }
+        .report-table .highlight-row {
+            background: #fffdf5;
+            font-weight: bold;
+        }
+        .metric-big {
+            display: inline-block;
+            text-align: center;
+            margin: 10px 20px;
+        }
+        .metric-big .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4a3820;
+        }
+        .metric-big .label {
+            font-size: 0.75em;
+            color: #6b5c3e;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .report-footer {
+            border-top: 1px solid #d0c8b0;
+            margin-top: 30px;
+            padding-top: 12px;
+            font-size: 0.75em;
+            color: #8a8070;
+            text-align: center;
+            font-style: italic;
+        }
+
+        /* === SCREENSHOTS GALLERY === */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .gallery-item {
+            position: relative;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+            aspect-ratio: 16/10;
+            background: #111;
+        }
+        .gallery-item:hover {
+            border-color: var(--gold);
+            transform: scale(1.03);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .gallery-item .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 6px 10px;
+            font-size: 0.75em;
+            color: #ccc;
+        }
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--surface);
+        }
+        .upload-zone:hover {
+            border-color: var(--gold);
+            background: #2a2a32;
+        }
+        .upload-zone.drag-over {
+            border-color: var(--gold);
+            background: #2f2f38;
+            box-shadow: inset 0 0 30px rgba(201, 168, 76, 0.1);
+        }
+
+        /* === MODAL === */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+        .modal {
+            background: var(--surface2);
+            border: 1px solid var(--gold-dim);
+            border-radius: var(--radius);
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7);
+        }
+        .modal h3 {
+            font-family: var(--font-heading);
+            color: var(--gold);
+            margin-bottom: 16px;
+        }
+        .modal .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            color: var(--text2);
+            font-size: 1.4em;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .modal .close-btn:hover {
+            color: #fff;
+        }
+
+        /* === TOAST === */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #2a2a32;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 12px 20px;
+            border-radius: 20px;
+            font-family: var(--font-heading);
+            z-index: 300;
+            animation: slideUp 0.3s ease, fadeOut 0.5s ease 2.5s forwards;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+        @keyframes slideUp {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        /* === PRINT === */
+        @media print {
+            body {
+                background: #fff;
+                color: #000;
+            }
+            .header,
+            .nav-tabs,
+            .btn-row,
+            .card:not(.print-card),
+            .party-list,
+            #parliamentTab .card:first-child,
+            .upload-zone,
+            .gallery-grid,
+            .modal-overlay,
+            .toast {
+                display: none !important;
+            }
+            .report-paper {
+                box-shadow: none;
+                border: 1px solid #ccc;
+                padding: 20px;
+                max-width: 100%;
+                background: #fff;
+            }
+            .tab-content {
+                display: block !important;
+            }
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 768px) {
+            .header {
+                padding: 10px 12px;
+                gap: 8px;
+            }
+            .header .logo {
+                font-size: 1.2em;
+            }
+            .nav-tab {
+                padding: 8px 10px;
+                font-size: 0.75em;
+            }
+            .report-paper {
+                padding: 20px 16px;
+            }
+            .metric-big {
+                margin: 6px 10px;
+            }
+            .metric-big .value {
+                font-size: 1.3em;
+            }
+            .party-chip {
+                padding: 6px 10px;
+                font-size: 0.8em;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="wrap">
-    <section class="hero">
-      <div class="hero-top">
-        <h1>Parliament Studio</h1>
-        <p>GitHub Pages version. One file. No build step required.</p>
-      </div>
-      <div class="stats">
-        <div class="stat"><div class="k">Lower House</div><div class="v" id="statSeats">169</div></div>
-        <div class="stat"><div class="k">Parties</div><div class="v" id="statParties">0</div></div>
-        <div class="stat"><div class="k">Possible coalitions</div><div class="v" id="statCoalitions">0</div></div>
-        <div class="stat"><div class="k">Majority</div><div class="v" id="statMajority">85</div></div>
-      </div>
-    </section>
 
-    <div class="tabs">
-      <button class="tab active" data-tab="studio">Studio</button>
-      <button class="tab" data-tab="chamber">Chamber</button>
-      <button class="tab" data-tab="coalitions">Coalitions</button>
-      <button class="tab" data-tab="timeline">Timeline</button>
-      <button class="tab" data-tab="history">History</button>
-      <button class="tab" data-tab="budget">Budget</button>
-      <button class="tab" data-tab="bills">Bills</button>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+            Victoria 3
+            <span>Parliament & Economic Reports</span>
+        </div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="parliament">🏛️ Parliament</button>
+            <button class="nav-tab" data-tab="history">📜 History <span class="badge" id="historyCount">0</span></button>
+            <button class="nav-tab" data-tab="economy">📊 Economic Report</button>
+            <button class="nav-tab" data-tab="screenshots">🖼️ Screenshots</button>
+        </div>
     </div>
 
-    <section id="tab-studio" class="tab-panel">
-      <div class="grid">
-        <div>
-          <div class="card">
-            <h2>Chamber controls</h2>
-            <p class="muted">Input data, seat rules, OCR-ready text, and layout styling.</p>
-            <div class="row two">
-              <div><label>Parliament title</label><input id="parliamentName" /></div>
-              <div><label>Crest / symbol</label><input id="crest" maxlength="4" /></div>
-            </div>
-            <div class="row two" style="margin-top:12px;">
-              <div>
-                <label>Input mode</label>
-                <select id="inputMode"><option value="percent">Percentages / vote share</option><option value="raw">Raw values / vote totals</option></select>
-              </div>
-              <div>
-                <label>Rounding / apportionment</label>
-                <select id="roundingMethod">
-                  <option value="largestRemainder">Largest remainder</option>
-                  <option value="dhondt">D'Hondt</option>
-                  <option value="saintelague">Sainte-Laguë</option>
-                  <option value="up">Round up</option>
-                  <option value="down">Round down</option>
-                </select>
-              </div>
-            </div>
-            <div class="subcard" style="margin-top:12px;">
-              <label>Seat sorting strength <span id="sortStrengthValue" class="mini"></span></label>
-              <input id="sortStrength" type="range" min="0" max="100" step="1" />
-              <div class="mini">Higher values group parties more strongly by left-right position.</div>
-            </div>
-            <div class="subcard" style="margin-top:12px;">
-              <div class="title-row"><label style="margin:0;">Enable threshold rule</label><input id="thresholdEnabled" type="checkbox" style="width:auto;" /></div>
-              <div id="thresholdBlock" style="margin-top:12px;">
-                <div class="row two">
-                  <div>
-                    <label>Threshold type</label>
-                    <select id="thresholdType"><option value="hard">Hard cutoff</option><option value="soft">Soft marker only</option></select>
-                  </div>
-                  <div><label>Threshold value (%)</label><input id="thresholdValue" type="number" min="0" max="100" /></div>
+    <!-- MAIN CONTENT -->
+    <div class="main-container">
+
+        <!-- PARLIAMENT TAB -->
+        <div class="tab-content active" id="parliamentTab">
+            <div class="card">
+                <h2>🏛️ Current Parliament</h2>
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+                    <label style="margin:0;">Total Seats:</label>
+                    <input type="number" id="totalSeats" value="300" min="10" max="1000" step="5" style="width:80px;">
+                    <button class="btn btn-sm btn-secondary" onclick="updateTotalSeats()">Apply</button>
+                    <span style="color:var(--text2);font-size:0.85em;" id="seatSummary">300 seats | 0 unassigned</span>
                 </div>
-                <div class="title-row" style="margin-top:12px;"><label style="margin:0;">Exempt largest party</label><input id="thresholdExemptLargest" type="checkbox" style="width:auto;" /></div>
-              </div>
+                <div class="parliament-svg-container" id="parliamentSvgContainer">
+                    <svg id="parliamentSvg" viewBox="0 0 800 420" xmlns="http://www.w3.org/2000/svg"></svg>
+                </div>
+                <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+                    <span style="font-size:0.85em;color:var(--text2);">Legend:</span>
+                    <span style="font-size:0.8em;">✨ Glow = Governing party</span>
+                    <span style="font-size:0.8em;color:var(--text2);">| Hover seats for info</span>
+                </div>
             </div>
-            <div class="row two" style="margin-top:12px;">
-              <div><label>Lower house name</label><input id="lowerHouseName" /></div>
-              <div><label>Lower house seats</label><input id="lowerHouseSeats" type="number" min="1" /></div>
+            <div class="card">
+                <h2>🎯 Parties & Seat Distribution</h2>
+                <div class="party-list" id="partyList"></div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="addParty()">+ Add Party</button>
+                    <button class="btn btn-secondary" onclick="formGovernment()">🤝 Form Government</button>
+                    <button class="btn btn-secondary" onclick="saveToHistory()">💾 Save to History</button>
+                    <button class="btn btn-danger btn-sm" onclick="resetParliament()">Reset All</button>
+                </div>
+                <p style="font-size:0.8em;color:var(--text2);margin-top:8px;">
+                    💡 Click a party chip to toggle it as governing/opposition. Use +/- to adjust seats.
+                </p>
             </div>
-            <div style="margin-top:12px;"><label>Lower house chamber form</label><select id="houseType"><option value="semicircle">Semicircle</option><option value="horseshoe">Horseshoe</option><option value="westminster">Confrontational benches</option><option value="circular">Circular chamber</option></select></div>
-            <div class="title-row" style="margin-top:12px;"><label style="margin:0;">Enable upper house</label><input id="upperEnabled" type="checkbox" style="width:auto;" /></div>
-            <div id="upperBlock" class="subcard hidden" style="margin-top:12px;">
-              <div class="row two">
-                <div><label>Upper house name</label><input id="upperHouseName" /></div>
-                <div><label>Upper house seats</label><input id="upperHouseSeats" type="number" min="1" /></div>
-              </div>
-              <div style="margin-top:12px;"><label>Upper house chamber form</label><select id="upperHouseType"><option value="semicircle">Semicircle</option><option value="horseshoe">Horseshoe</option><option value="westminster">Confrontational benches</option><option value="circular">Circular chamber</option></select></div><div style="margin-top:12px;"><label>Upper house seat bias</label><select id="upperHouseSystem"><option value="proportional">Proportional</option><option value="large-party-bias">Large-party bias</option><option value="small-party-bias">Small-party bias</option></select></div><div class="title-row" style="margin-top:12px;"><label style="margin:0;">Use separate upper-house results</label><input id="upperSeparate" type="checkbox" style="width:auto;" /></div><div id="upperInputWrap" class="hidden" style="margin-top:12px;"><label>Upper-house party rows</label><textarea id="upperRawInput" style="min-height:120px;"></textarea><div class="btns" style="margin-top:8px;"><button class="btn" id="parseUpperBtn" style="width:auto;">Parse upper-house text</button></div></div></div>
-            <div class="title-row" style="margin-top:12px;"><label style="margin:0;">Show speaker stool / rostrum</label><input id="showSpeaker" type="checkbox" style="width:auto;" /></div>
-            <div style="margin-top:14px;"><label>Paste party rows</label><textarea id="rawInput"></textarea><div class="mini">Use rows like “Party, 23”.</div></div>
-            <div class="btns" style="margin-top:12px;">
-              <button id="parseTextBtn">Parse text</button>
-              <button id="exportBtn">Export session</button>
-              <button id="saveSnapshotBtn">Save parliament</button>
+        </div>
+
+        <!-- HISTORY TAB -->
+        <div class="tab-content" id="historyTab">
+            <div class="card">
+                <h2>📜 Government History</h2>
+                <div class="timeline" id="historyTimeline">
+                    <p style="color:var(--text2);">No saved governments yet. Go to the Parliament tab and save your current government!</p>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-danger btn-sm" onclick="clearHistory()">Clear History</button>
+                    <button class="btn btn-secondary btn-sm" onclick="exportHistory()">Export History (JSON)</button>
+                </div>
             </div>
-            <div id="importMessage" class="mini" style="margin-top:10px;"></div>
-          </div>
         </div>
-        <div>
-          <div class="card">
-            <h2>Chamber labels</h2>
-            <p class="muted">Rename government, opposition, and crossbench camps.</p>
-            <div class="row three">
-              <div><label>Government label</label><input id="governmentLabel" /></div>
-              <div><label>Opposition label</label><input id="oppositionLabel" /></div>
-              <div><label>Crossbench label</label><input id="crossbenchLabel" /></div>
+
+        <!-- ECONOMIC REPORT TAB -->
+        <div class="tab-content" id="economyTab">
+            <div class="card">
+                <h2>📊 Generate Yearly Economic Report</h2>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+                    <div><label>Country Name</label><input type="text" id="ecoCountry" value="Great Britain" placeholder="Country"></div>
+                    <div><label>Year</label><input type="number" id="ecoYear" value="1890" min="1836" max="1936"></div>
+                    <div><label>GDP (£ millions)</label><input type="number" id="ecoGDP" value="24500" step="100"></div>
+                    <div><label>GDP Growth (%)</label><input type="number" id="ecoGrowth" value="2.8" step="0.1"></div>
+                    <div><label>GDP per Capita (£)</label><input type="number" id="ecoGDPpc" value="620" step="1"></div>
+                    <div><label>Inflation (%)</label><input type="number" id="ecoInflation" value="1.4" step="0.1"></div>
+                    <div><label>Unemployment (%)</label><input type="number" id="ecoUnemp" value="4.2" step="0.1"></div>
+                    <div><label>Govt Revenue (£M)</label><input type="number" id="ecoRevenue" value="3200" step="50"></div>
+                    <div><label>Govt Expenditure (£M)</label><input type="number" id="ecoExpend" value="3450" step="50"></div>
+                    <div><label>National Debt (£M)</label><input type="number" id="ecoDebt" value="18200" step="100"></div>
+                    <div><label>Trade Balance (£M)</label><input type="number" id="ecoTrade" value="-120" step="10"></div>
+                    <div><label>Gold Reserves (£M)</label><input type="number" id="ecoGold" value="840" step="10"></div>
+                </div>
+                <div style="margin-top:12px;">
+                    <label>Sector Breakdown (one per line: name,value)</label>
+                    <textarea id="ecoSectors" rows="4" placeholder="Manufacturing,8200&#10;Agriculture,3400&#10;Mining,2900&#10;Trade & Transport,5100&#10;Finance,2800&#10;Construction,2100"></textarea>
+                </div>
+                <div style="margin-top:12px;">
+                    <label>Executive Summary / Notes</label>
+                    <textarea id="ecoNotes" rows="3" placeholder="The economy continues to expand at a steady pace, driven by industrial output and growing international trade..."></textarea>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="generateReport()">📄 Generate Report</button>
+                    <button class="btn btn-secondary" onclick="printReport()">🖨️ Print Report</button>
+                    <button class="btn btn-secondary" onclick="saveEconomicReport()">💾 Save Report</button>
+                </div>
             </div>
-          </div>
-          <div class="chamber-grid">
-            <div>
-              <div class="card">
-                <div id="lowerChamber"></div>
-              </div>
-              <div class="card"><h3 id="lowerLegendTitle"></h3><div id="lowerLegend"></div></div>
+            <div class="card print-card" id="reportContainer" style="display:none;">
+                <h2>📄 Generated Report</h2>
+                <div id="reportContent"></div>
             </div>
-            <div id="upperPanel" class="hidden">
-              <div class="card"><div id="upperChamber"></div></div>
-              <div class="card"><h3 id="upperLegendTitle"></h3><div id="upperLegend"></div></div>
+            <div class="card" id="savedReportsCard">
+                <h2>📁 Saved Reports</h2>
+                <div id="savedReportsList"><p style="color:var(--text2);">No saved reports yet.</p></div>
             </div>
-          </div>
-          <div class="card">
-            <div class="title-row"><div><h2>Party editor</h2><p class="muted">Adjust left-right position, bloc, and whip discipline.</p></div><button id="addPartyBtn" style="width:auto;">Add party</button></div>
-            <div id="partyEditor" style="margin-top:12px;"></div>
-          </div>
         </div>
-      </div>
-    </section>
 
-    <section id="tab-chamber" class="tab-panel hidden">
-      <div class="presentation-grid">
-        <div>
-          <div class="card large-chamber"><div class="title-row"><div><h2>Chamber view</h2><p class="muted">Large-format chamber display.</p></div><div class="btns"><button class="btn" id="exportSvgBtn" style="width:auto;">Export SVG</button></div></div><div class="action-grid" style="margin-bottom:12px;"><button class="btn" id="confidenceBtn">Motion of confidence</button><button class="btn" id="budgetBtn">Budget vote</button><button class="btn" id="dissolutionBtn">Dissolution threat</button><button class="btn" id="formGovBtn">Form government</button></div><div class="row two" style="margin-bottom:12px;"><div><label>Pending bill</label><select id="pendingBillSelect"></select></div><div style="display:flex;align-items:end;"><button class="btn" id="putBillToVoteBtn" style="width:100%;">Put bill to vote</button></div></div><div class="small" style="margin-bottom:8px;">Support agreements count for confidence votes, and budget agreements count for budget votes.</div><div id="chamberActionResult" class="small" style="margin-bottom:10px;"></div><div id="voteVisual"></div><div id="presentationLower"></div><div id="presentationUpperWrap" class="hidden" style="margin-top:18px;"><div id="presentationUpper"></div></div></div>
+        <!-- SCREENSHOTS TAB -->
+        <div class="tab-content" id="screenshotsTab">
+            <div class="card">
+                <h2>🖼️ Screenshot Gallery</h2>
+                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                    <p style="font-size:1.5em;">📁</p>
+                    <p>Click or drag & drop Victoria 3 screenshots here</p>
+                    <p style="font-size:0.75em;color:var(--text2);">Images stored locally in your browser</p>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" multiple style="display:none;" onchange="handleFileUpload(event)">
+                <div class="gallery-grid" id="galleryGrid" style="margin-top:16px;"></div>
+                <div class="btn-row">
+                    <button class="btn btn-danger btn-sm" onclick="clearScreenshots()">Clear All Screenshots</button>
+                </div>
+            </div>
         </div>
-        <div>
-          <div class="card"><h2>Seat legend</h2><div id="presentationLegend"></div></div>
-          <div class="card"><h2>Recent bills</h2><div id="recentBills"></div></div>
-        </div>
-      </div>
-    </section>
+    </div>
 
-    <section id="tab-coalitions" class="tab-panel hidden">
-      <div class="card">
-        <h2>Draggable coalition builder</h2>
-        <p class="muted">Drag parties into government, opposition, or crossbench. Support agreements are managed separately below.</p>
-        <div class="groups" id="groupZones"></div>
-      
-      </div>
-      <div class="card">
-        <h2>Support agreements</h2>
-        <p class="muted">Parties outside government can still support the ministry on confidence votes or on confidence and budget.</p>
-        <div id="supportAgreementsList"></div>
-      <div class="card">
-        <h2>Floor leadership</h2>
-        <p class="muted">Choose the leading government and opposition party.</p>
-        <div class="row two">
-          <div><label id="governmentLeaderLabel"></label><select id="governmentLeaderSelect"></select></div>
-          <div><label id="oppositionLeaderLabel"></label><select id="oppositionLeaderSelect"></select></div>
-        </div>
-      </div>
-      <div class="card">
-        <h2>Ministry and support</h2>
-        <p class="muted">Track the ministry, confidence-and-supply support, and coalition durability.</p>
-        <div class="row three">
-          <div><label>Ministry name</label><input id="ministryName"></div>
-          <div><label>Prime minister</label><input id="primeMinister"></div>
-          <div><label>President / head of state</label><input id="presidentName"></div>
-        </div>
-        <div class="row three" style="margin-top:12px;">
-          <div><label>Government type</label><select id="governmentType"><option value="coalition">Coalition</option><option value="single-party">Single-party</option><option value="minority">Minority</option><option value="caretaker">Caretaker</option></select></div>
-          <div></div><div></div>
-        </div>
-        <div style="margin-top:12px" class="small" id="stabilityScore"></div>
-      </div>
-      <div class="card">
-        <h2>Coalition workshop</h2>
-        <div id="coalitionsGrid" class="coalitions-grid"></div>
-      </div>
-    </section>
+    <!-- MODAL (hidden by default) -->
+    <div class="modal-overlay" id="modalOverlay" style="display:none;" onclick="closeModal(event)">
+        <div class="modal" id="modalContent" onclick="event.stopPropagation()"></div>
+    </div>
 
-    <section id="tab-timeline" class="tab-panel hidden">
-      <div class="card">
-        <h2>Session timeline</h2>
-        <div class="row" style="grid-template-columns: 140px 160px 1fr 180px 140px; align-items:end;">
-          <div><label>Date</label><input id="timelineDate" type="date" /></div>
-          <div><label>Type</label><select id="timelineType"><option value="session">Session</option><option value="election">Election</option><option value="government">Government</option><option value="bill">Bill</option><option value="crisis">Crisis</option></select></div>
-          <div><label>Title</label><input id="timelineTitle" /></div>
-          <div><label>Chamber</label><input id="timelineChamber" /></div>
-          <div><button id="addTimelineBtn">Add event</button></div>
-        </div>
-        <div style="margin-top:12px;"><label>Description</label><textarea id="timelineDescription" style="min-height:90px;"></textarea></div>
-        <div id="timelineList" style="margin-top:12px;"></div>
-      </div>
-    </section>
+    <!-- TOAST CONTAINER -->
+    <div id="toastContainer"></div>
 
-    <section id="tab-history" class="tab-panel hidden">
-      <div class="card">
-        <h2>Historical register</h2>
-        <div id="historyList"></div>
-      </div>
-    </section>
+    <script>
+        // ==================== STATE MANAGEMENT ====================
+        const DEFAULT_PARTIES = [
+            { name: 'Conservative Party', color: '#3a6ba5', seats: 135, governing: true },
+            { name: 'Liberal Party', color: '#e8a830', seats: 95, governing: false },
+            { name: 'Labour Party', color: '#c74440', seats: 42, governing: false },
+            { name: 'Irish Parliamentary', color: '#5a9a5a', seats: 18, governing: false },
+            { name: 'Independent', color: '#888888', seats: 10, governing: false },
+        ];
 
-
-    <section id="tab-budget" class="tab-panel hidden">
-      <div class="card">
-        <h2>Budget programme</h2>
-        <p class="muted">Set the direction of the budget. Parties use their ideology presets and tags to evaluate it.</p>
-        <div class="row three">
-          <div><label>Military</label><select id="budgetMilitary"><option value="-1">Decrease</option><option value="0">Maintain</option><option value="1">Increase</option></select></div>
-          <div><label>Welfare</label><select id="budgetWelfare"><option value="-1">Decrease</option><option value="0">Maintain</option><option value="1">Increase</option></select></div>
-          <div><label>Infrastructure</label><select id="budgetInfrastructure"><option value="-1">Decrease</option><option value="0">Maintain</option><option value="1">Increase</option></select></div>
-        </div>
-        <div class="row three" style="margin-top:12px;">
-          <div><label>Church funding</label><select id="budgetChurch"><option value="-1">Decrease</option><option value="0">Maintain</option><option value="1">Increase</option></select></div>
-          <div><label>Tariffs</label><select id="budgetTariffs"><option value="-1">Lower</option><option value="0">Maintain</option><option value="1">Raise</option></select></div>
-          <div><label>Education</label><select id="budgetEducation"><option value="-1">Decrease</option><option value="0">Maintain</option><option value="1">Increase</option></select></div>
-        </div>
-        <div class="row three" style="margin-top:12px;">
-          <div><label>Debt repayment</label><select id="budgetDebt"><option value="-1">Cut</option><option value="0">Maintain</option><option value="1">Increase</option></select></div>
-          <div><label>Colonial spending</label><select id="budgetColonial"><option value="-1">Decrease</option><option value="0">Maintain</option><option value="1">Increase</option></select></div>
-          <div><label>Agricultural supports</label><select id="budgetAgriculture"><option value="-1">Decrease</option><option value="0">Maintain</option><option value="1">Increase</option></select></div>
-        </div>
-        <div class="btns" style="margin-top:12px;"><button class="btn" id="createBudgetBillBtn" style="width:auto;">Create budget bill</button></div>
-        <div id="budgetForecast" class="small" style="margin-top:10px;"></div>
-      </div>
-    </section>
-
-    <section id="tab-bills" class="tab-panel hidden">
-      <div class="card">
-        <h2>Whip discipline and vote rules</h2>
-        <div class="row three">
-          <div><label>Whip discipline mode</label><select id="whipMode"><option value="strict">Strict</option><option value="standard">Standard</option><option value="loose">Loose</option></select></div>
-          <div><label>Bill type</label><select id="billType"><option value="ordinary">Ordinary bill</option><option value="budget">Budget</option><option value="confidence">Confidence vote</option><option value="constitutional">Constitutional amendment</option><option value="upper-consent">Upper-house consent bill</option></select></div>
-          <div><label>Majority rule</label><select id="majorityRule"><option value="votes-cast">Majority of votes cast</option><option value="all-members">Absolute majority of all members</option><option value="two-thirds">Two-thirds</option><option value="three-fifths">Three-fifths</option></select></div>
-        </div>
-      </div>
-      <div class="card">
-        <h2>Create bill</h2>
-        <div class="row" style="grid-template-columns: 1.3fr 140px 180px 1.2fr 170px; align-items:end;">
-          <div><label>Bill title</label><input id="billTitle" /></div>
-          <div><label>Date</label><input id="billDate" type="date" /></div>
-          <div><label>House</label><input id="billHouse" /></div>
-          <div><label>Coalition / sponsor</label><select id="billCoalition"></select></div>
-          <div><button id="addBillBtn">Create pending bill</button></div>
-        </div>
-        <div class="small" style="margin-top:10px;">Bills created here are pending only. They are not voted until you choose them in Chamber view and click “Put bill to vote”.</div><div id="pendingBillsList" style="margin-top:12px;"></div><h2 style="margin-top:16px;">Passed and failed votes</h2><div id="billList" style="margin-top:12px;"></div>
-      </div>
-    </section>
-  </div>
-  <div id="seatTooltip" class="tooltip"></div>
-  <div id="seatTooltip" class="seat-tooltip"></div>
-  <div id="seatTooltip" class="seat-tooltip"></div>
-
-  <script>
-    const HOUSE_PRESETS = {
-      semicircle: { label: "Semicircle", rows: 8, density: 1 },
-      horseshoe: { label: "Horseshoe", rows: 8, density: 0.9 },
-      westminster: { label: "Confrontational benches", rows: 10, density: 1 },
-      circular: { label: "Circular chamber", rows: 9, density: 1 },
-    };
-
-    const defaultState = {
-      parliamentName: "Grand Parliamentary Register",
-      crest: "✶",
-      inputMode: "percent",
-      roundingMethod: "largestRemainder",
-      houseType: "semicircle",
-      upperHouseType: "horseshoe",
-      showSpeaker: true,
-      upperEnabled: false,
-      rawInput: "Free-minded Liberals, 43\nConservatives, 26\nLiberals, 19\nRadical People's Party, 12",
-      governmentLabel: "Government",
-      oppositionLabel: "Opposition",
-      crossbenchLabel: "Crossbench",
-      whipMode: "standard",
-      billType: "ordinary",
-      majorityRule: "votes-cast",
-      ministryName: "First Ministry",
-      primeMinister: "",
-      presidentName: "",
-      governmentType: "coalition",
-      supportAgreements: {},
-      defaultDate: "1836-01-01",
-      budgetPlan: { military:0, welfare:0, infrastructure:0, church:0, tariffs:0, education:0, debt:0, colonial:0, agriculture:0 },
-      pendingBills: [],
-      billDraftDate: "1836-01-01",
-      timelineDraftDate: "1836-01-01",
-      lastVoteResult: null,
-      upperSeparate: false,
-      upperHouseSystem: "proportional",
-      upperRawInput: "",
-      upperParties: [],
-      chamberActionResult: "",
-      sortStrength: 100,
-      thresholdConfig: { enabled: false, thresholdType: "hard", thresholdValue: 4, exemptLargest: true },
-      lowerHouse: { houseName: "Lower House", totalSeats: 169 },
-      upperHouse: { houseName: "Upper House", totalSeats: 72 },
-      parties: [
-        { id: crypto.randomUUID(), name: "Free-minded Liberals", value: 43, color: "#d1a21b", ideology: 62, bloc: "Reform Bloc", whip: 82, labels: ["government"], tags:["liberal","reform"] },
-        { id: crypto.randomUUID(), name: "Conservatives", value: 26, color: "#355caa", ideology: 22, bloc: "Crown Bloc", whip: 88, labels: ["opposition"], tags:["conservative","monarchist"] },
-        { id: crypto.randomUUID(), name: "Liberals", value: 19, color: "#4d8a43", ideology: 55, bloc: "Reform Bloc", whip: 76, labels: ["government"], tags:["liberal","reform"] },
-        { id: crypto.randomUUID(), name: "Radical People's Party", value: 12, color: "#cf7038", ideology: 78, bloc: "Radical Bloc", whip: 67, labels: ["crossbench"], tags:["radical","anti-clerical"] },
-      ],
-      bills: [
-        { id: crypto.randomUUID(), title: "Railway Expansion Act", status: "Passed", date: "1883-04-15", coalition: "Free-minded Liberals + Liberals", house: "Lower House", yes: 97, no: 72, abstain: 0 },
-        { id: crypto.randomUUID(), title: "Tariff Revision Bill", status: "Failed", date: "1883-05-02", coalition: "Conservatives + Free-minded Liberals", house: "Lower House", yes: 79, no: 90, abstain: 0 },
-      ],
-      timeline: [
-        { id: crypto.randomUUID(), date: "1883-03-30", type: "election", title: "General Election", description: "Reform parties gain a governing plurality.", chamber: "National" },
-        { id: crypto.randomUUID(), date: "1883-04-01", type: "government", title: "Ministry Formed", description: "Free-minded Liberals and Liberals agree on a governing arrangement.", chamber: "Lower House" },
-        { id: crypto.randomUUID(), date: "1883-04-15", type: "bill", title: "Railway Expansion Act", description: "Passed after strong government discipline.", chamber: "Lower House" },
-      ],
-      snapshots: [],
-      governmentIds: [],
-      oppositionIds: [],
-      governmentLeaderId: "",
-      oppositionLeaderId: "",
-    };
-
-    defaultState.governmentIds = defaultState.parties.filter(p => p.labels.includes("government")).map(p => p.id);
-    defaultState.oppositionIds = defaultState.parties.filter(p => p.labels.includes("opposition")).map(p => p.id);
-    defaultState.governmentLeaderId = defaultState.governmentIds[0] || "";
-    defaultState.oppositionLeaderId = defaultState.oppositionIds[0] || "";
-
-    let state = loadState();
-    let draggedPartyId = null;
-
-    function loadState() {
-      try {
-        const saved = JSON.parse(localStorage.getItem("parliament-studio-gh-pages") || "null");
-        return saved ? mergeState(defaultState, saved) : structuredClone(defaultState);
-      } catch {
-        return structuredClone(defaultState);
-      }
-    }
-
-    function mergeState(base, saved) {
-      return {
-        ...structuredClone(base),
-        ...saved,
-        thresholdConfig: { ...base.thresholdConfig, ...(saved.thresholdConfig || {}) },
-        lowerHouse: { ...base.lowerHouse, ...(saved.lowerHouse || {}) },
-        upperHouse: { ...base.upperHouse, ...(saved.upperHouse || {}) },
-      };
-    }
-
-    function persist() {
-      localStorage.setItem("parliament-studio-gh-pages", JSON.stringify(state));
-    }
-
-    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
-    function randomColor(seed) {
-      let hash = 0;
-      for (let i = 0; i < seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash);
-      const hue = Math.abs(hash) % 360;
-      return `hsl(${hue} 50% 48%)`;
-    }
-    function normalizeText(s) { return String(s || "").replace(/[–—]/g, "-").replace(/\s+/g, " ").trim(); }
-    function majority(totalSeats) { return Math.floor(totalSeats / 2) + 1; }
-
-    
-    
-    function transformUpperHouseValues(parties, system) {
-      return (parties || []).map(p => {
-        const v = Number(p.value || 0);
-        let adjusted = v;
-        if (system === "large-party-bias") adjusted = Math.pow(v, 1.18);
-        else if (system === "small-party-bias") adjusted = Math.pow(Math.max(v, 0), 0.82);
-        return { ...p, value: adjusted, originalValue: v };
-      });
-    }
-
-    function supportLevelForParty(partyId) {
-      return state.supportAgreements?.[partyId] || "none";
-    }
-
-    function setSupportLevel(partyId, level) {
-      if (!state.supportAgreements) state.supportAgreements = {};
-      if (!level || level === "none") delete state.supportAgreements[partyId];
-      else state.supportAgreements[partyId] = level;
-    }
-
-    function budgetPreferenceScore(party) {
-      const tags = new Set((party.tags || []).map(x => String(x).toLowerCase()));
-      const preset = String(party.preset || "custom").toLowerCase();
-      const plan = state.budgetPlan || {};
-      let score = 0;
-      const pref = (key, liked, disliked) => {
-        const v = Number(plan[key] || 0);
-        if (liked && v === 1) score += 2;
-        if (liked && v === -1) score -= 2;
-        if (disliked && v === 1) score -= 2;
-        if (disliked && v === -1) score += 2;
-      };
-
-      if (preset.includes("conservative") || tags.has("conservative")) { pref("military", true, false); pref("welfare", false, true); pref("church", true, false); pref("tariffs", true, false); pref("debt", true, false); }
-      if (preset.includes("liberal") || tags.has("liberal")) { pref("infrastructure", true, false); pref("tariffs", false, true); pref("education", true, false); pref("debt", true, false); }
-      if (preset.includes("agrarian") || tags.has("agrarian") || tags.has("rural")) { pref("tariffs", true, false); pref("agriculture", true, false); pref("infrastructure", true, false); }
-      if (preset.includes("socialist") || tags.has("socialist") || tags.has("labor") || tags.has("social democrat")) { pref("welfare", true, false); pref("education", true, false); pref("military", false, true); pref("agriculture", false, true); }
-      if (preset.includes("clerical") || tags.has("clerical") || tags.has("religious")) { pref("church", true, false); pref("education", false, true); }
-      if (preset.includes("reactionary") || tags.has("reactionary")) { pref("church", true, false); pref("military", true, false); pref("welfare", false, true); pref("colonial", true, false); }
-      if (preset.includes("radical") || tags.has("radical")) { pref("church", false, true); pref("education", true, false); pref("debt", false, true); }
-      if (tags.has("free trade")) pref("tariffs", false, true);
-      if (tags.has("protectionist")) pref("tariffs", true, false);
-      if (tags.has("colonial")) pref("colonial", true, false);
-      if (tags.has("anti-colonial")) pref("colonial", false, true);
-      return score;
-    }
-
-    function budgetForecastForParty(party) {
-      const score = budgetPreferenceScore(party);
-      const level = supportLevelForParty(party.id);
-      if (state.governmentIds.includes(party.id)) return { vote: "yes", score };
-      if (level === "budget") return { vote: "yes", score: score + 2 };
-      if (level === "confidence") return { vote: score >= 1 ? "yes" : (score <= -2 ? "no" : "abstain"), score };
-      if (score >= 2) return { vote: "yes", score };
-      if (score <= -2) return { vote: "no", score };
-      return { vote: "abstain", score };
-    }
-
-    function compatibilityLabel(score) {
-      if (score >= 80) return "High";
-      if (score >= 60) return "Medium";
-      if (score >= 40) return "Low";
-      return "Hostile";
-    }
-
-    function voteThreshold(rule, totalSeats, yesPlusNo) {
-      if (rule === "votes-cast") return Math.floor(yesPlusNo / 2) + 1;
-      if (rule === "all-members") return Math.floor(totalSeats / 2) + 1;
-      if (rule === "two-thirds") return Math.ceil(totalSeats * (2/3));
-      if (rule === "three-fifths") return Math.ceil(totalSeats * (3/5));
-      return Math.floor(yesPlusNo / 2) + 1;
-    }
-
-    function ensureDateDefaults() {
-      const bd = document.getElementById("billDate");
-      const td = document.getElementById("timelineDate");
-      if (bd && (!bd.value || bd.value > "1900-01-01")) bd.value = state.defaultDate || "1836-01-01";
-      if (td && (!td.value || td.value > "1900-01-01")) td.value = state.defaultDate || "1836-01-01";
-    }
-
-    
-    function currentChamberImage(selector) {
-      const svg = document.querySelector(selector);
-      return svg ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.outerHTML)}` : "";
-    }
-
-    function currentParliamentSnapshot() {
-      return currentChamberImage("#lowerChamber svg");
-    }
-
-    function currentUpperSnapshot() {
-      return currentChamberImage("#upperChamber svg");
-    }
-
-    function makeTimelineEntryWithImage(entry, which="lower") {
-      const image = which === "upper" ? currentUpperSnapshot() : currentParliamentSnapshot();
-      return { ...entry, image };
-    }
-
-    function renderVoteVisual() {
-      const root = document.getElementById("voteVisual");
-      if (!root) return;
-      const v = state.lastVoteResult;
-      if (!v) { root.innerHTML = ""; return; }
-      const total = Math.max(1, Number(v.totalSeats || 0));
-      const block = (label, value, cls) => `
-        <div class="vote-row">
-          <div class="vote-label"><span>${label}</span><span>${value}</span></div>
-          <div class="vote-track"><div class="vote-fill ${cls}" style="width:${(value/total)*100}%"></div></div>
-        </div>`;
-      root.innerHTML = `
-        <div class="vote-panel fade-in">
-          <div class="title-row"><strong>${escapeXml(v.houseLabel)} vote</strong><span class="pill ${v.status === "Passed" ? "pass" : "fail"}">${escapeXml(v.status)}</span></div>
-          <div class="small" style="margin-top:6px;">${escapeXml(v.title || "")}${v.threshold ? ` · threshold ${v.threshold}` : ""}</div>
-          ${block("Yes", v.yes || 0, "vote-yes")}
-          ${block("No", v.no || 0, "vote-no")}
-          ${block("Abstain", v.abstain || 0, "vote-abstain")}
-        </div>`;
-    }
-
-    function parseLooseInput(text) {
-      const rows = text.split(/\n+/).map(line => line.trim()).filter(Boolean);
-      const parties = [];
-      for (const row of rows) {
-        const csv = row.split(",").map(x => x.trim()).filter(Boolean);
-        if (csv.length >= 2 && !Number.isNaN(Number(csv[csv.length - 1].replace("%", "")))) {
-          const value = Number(csv.pop().replace("%", ""));
-          const maybeColor = csv.length >= 2 && /^#?[0-9a-fA-F]{6}$/.test(csv[csv.length - 1]) ? csv.pop() : null;
-          const name = csv.join(", ");
-          parties.push({ id: crypto.randomUUID(), name, value, color: maybeColor ? (maybeColor.startsWith("#") ? maybeColor : `#${maybeColor}`) : randomColor(name), ideology: 50, bloc: "Independent", whip: 75, labels: [] });
-          continue;
-        }
-        const match = row.match(/^(.*?)[\s:;\-|]+([0-9]+(?:\.[0-9]+)?)\s*%?\s*(#?[0-9a-fA-F]{6})?$/);
-        if (match) {
-          parties.push({ id: crypto.randomUUID(), name: match[1].trim(), value: Number(match[2]), color: match[3] ? (match[3].startsWith("#") ? match[3] : `#${match[3]}`) : randomColor(match[1]), ideology: 50, bloc: "Independent", whip: 75, labels: [] });
-        }
-      }
-      return parties;
-    }
-
-    function roundSeatShares(parties, totalSeats, method, thresholdConfig) {
-      const original = parties.map(p => ({ ...p }));
-      let working = original;
-      if (thresholdConfig.enabled) {
-        const sorted = [...original].sort((a, b) => Number(b.value || 0) - Number(a.value || 0));
-        const exemptId = thresholdConfig.exemptLargest && sorted[0] ? sorted[0].id : null;
-        working = original.map(p => ({ ...p, thresholdPassed: p.id === exemptId || Number(p.value || 0) >= Number(thresholdConfig.thresholdValue || 0) }));
-        if (thresholdConfig.thresholdType === "hard") working = working.filter(p => p.thresholdPassed);
-      }
-      const totalValue = working.reduce((s, p) => s + Number(p.value || 0), 0);
-      if (!totalValue || totalSeats <= 0 || working.length === 0) return original.map(p => ({ ...p, seats: 0, rawSeats: 0, thresholdPassed: !thresholdConfig.enabled || Number(p.value || 0) >= Number(thresholdConfig.thresholdValue || 0) }));
-      const raws = working.map(p => ({ ...p, rawSeats: (Number(p.value || 0) / totalValue) * totalSeats }));
-      let allocated;
-      if (method === "dhondt") {
-        const seatMap = Object.fromEntries(working.map(p => [p.id, 0]));
-        for (let i = 0; i < totalSeats; i++) {
-          let best = -Infinity, winner = null;
-          for (const p of working) {
-            const q = Number(p.value || 0) / (seatMap[p.id] + 1);
-            if (q > best) { best = q; winner = p.id; }
-          }
-          seatMap[winner] += 1;
-        }
-        allocated = raws.map(p => ({ ...p, seats: seatMap[p.id] || 0 }));
-      } else if (method === "saintelague") {
-        const seatMap = Object.fromEntries(working.map(p => [p.id, 0]));
-        for (let i = 0; i < totalSeats; i++) {
-          let best = -Infinity, winner = null;
-          for (const p of working) {
-            const divisor = seatMap[p.id] === 0 ? 1 : seatMap[p.id] * 2 + 1;
-            const q = Number(p.value || 0) / divisor;
-            if (q > best) { best = q; winner = p.id; }
-          }
-          seatMap[winner] += 1;
-        }
-        allocated = raws.map(p => ({ ...p, seats: seatMap[p.id] || 0 }));
-      } else if (method === "up") {
-        let seated = 0;
-        allocated = raws.map(p => { const seats = Math.ceil(p.rawSeats); seated += seats; return { ...p, seats }; });
-        while (seated > totalSeats) {
-          const c = [...allocated].filter(p => p.seats > 0).sort((a,b) => (a.rawSeats - a.seats) - (b.rawSeats - b.seats))[0];
-          if (!c) break; c.seats -= 1; seated -= 1;
-        }
-      } else if (method === "down") {
-        let seated = 0;
-        allocated = raws.map(p => { const seats = Math.floor(p.rawSeats); seated += seats; return { ...p, seats }; });
-        while (seated < totalSeats) {
-          const c = [...allocated].sort((a,b) => (b.rawSeats - b.seats) - (a.rawSeats - a.seats))[0];
-          if (!c) break; c.seats += 1; seated += 1;
-        }
-      } else {
-        const floors = raws.map(p => ({ ...p, seats: Math.floor(p.rawSeats) }));
-        let count = floors.reduce((s, p) => s + p.seats, 0);
-        const rem = [...floors].sort((a,b) => (b.rawSeats - b.seats) - (a.rawSeats - a.seats));
-        let i = 0;
-        while (count < totalSeats && rem.length) { rem[i % rem.length].seats += 1; count += 1; i += 1; }
-        allocated = floors;
-      }
-      const map = Object.fromEntries(allocated.map(p => [p.id, p]));
-      return original.map(p => ({ ...p, seats: map[p.id]?.seats || 0, rawSeats: map[p.id]?.rawSeats || 0, thresholdPassed: map[p.id] ? true : (!thresholdConfig.enabled || Number(p.value || 0) >= Number(thresholdConfig.thresholdValue || 0)) }));
-    }
-
-    function ideologyOrderedAssignments(seatAssignments, sortStrength) {
-      const ordered = [...seatAssignments].sort((a, b) => (a.ideology ?? 50) - (b.ideology ?? 50) || b.seats - a.seats);
-      if (sortStrength <= 0) return seatAssignments;
-      if (sortStrength >= 100) return ordered;
-      const mixed = seatAssignments.map((party, index) => ({ party, index }));
-      const orderMap = new Map(ordered.map((p, idx) => [p.id, idx]));
-      return [...mixed].sort((a,b) => {
-        const current = a.index - b.index;
-        const ideology = orderMap.get(a.party.id) - orderMap.get(b.party.id);
-        return current * (1 - sortStrength / 100) + ideology * (sortStrength / 100);
-      }).map(x => x.party);
-    }
-
-    function buildSeatPositions(totalSeats, type) {
-      const positions = [];
-      if (!totalSeats) return positions;
-      if (type === "westminster") {
-        const columns = Math.max(8, Math.ceil(totalSeats / 12));
-        const rowsPerSide = Math.ceil(totalSeats / 2 / columns);
-        let built = 0;
-        for (let r = 0; r < rowsPerSide; r++) {
-          for (let c = 0; c < columns; c++) {
-            if (built < Math.ceil(totalSeats / 2)) { positions.push({ x: 18 + c*6, y: 14 + r*8, sortPrimary: 18 + c*6, sortSecondary: r }); built += 1; }
-          }
-        }
-        for (let r = 0; r < rowsPerSide; r++) {
-          for (let c = 0; c < columns; c++) {
-            if (built < totalSeats) { positions.push({ x: 82 - c*6, y: 14 + r*8, sortPrimary: 82 - c*6, sortSecondary: r }); built += 1; }
-          }
-        }
-        return positions.sort((a,b) => a.sortPrimary - b.sortPrimary || a.sortSecondary - b.sortSecondary);
-      }
-      const preset = HOUSE_PRESETS[type] || HOUSE_PRESETS.semicircle;
-      let built = 0;
-      for (let row = 0; row < preset.rows; row++) {
-        const radius = 18 + row * 4.7;
-        const capacity = Math.max(4, Math.round((Math.PI * radius * preset.density) / 3.15));
-        const count = Math.min(capacity, totalSeats - built);
-        for (let i = 0; i < count; i++) {
-          const angle = type === "circular" ? ((i / count) * Math.PI * 2) - Math.PI / 2 : Math.PI + (i / Math.max(1, count - 1)) * Math.PI;
-          const x = 50 + Math.cos(angle) * radius;
-          const y = type === "horseshoe" ? 60 + Math.sin(angle) * radius * 0.78 : 66 + Math.sin(angle) * radius * 0.68;
-          positions.push({ x, y, angle, row, radius, sortPrimary: angle, sortSecondary: -radius });
-          built += 1;
-          if (built >= totalSeats) break;
-        }
-        if (built >= totalSeats) break;
-      }
-      return positions.sort((a,b) => a.sortPrimary - b.sortPrimary || a.sortSecondary - b.sortSecondary || a.row - b.row);
-    }
-
-    function seatDots(seatAssignments, type, sortStrength) {
-      const orderedAssignments = ideologyOrderedAssignments(seatAssignments, sortStrength);
-      const totalSeats = orderedAssignments.reduce((s,p) => s + p.seats, 0);
-      if (!totalSeats) return [];
-      const seats = [];
-      orderedAssignments.forEach(p => {
-        for (let i = 0; i < p.seats; i++) seats.push({ color: p.color, ideology: p.ideology ?? 50, partyId: p.id });
-      });
-      const positions = buildSeatPositions(totalSeats, type);
-      return positions.map((pos, idx) => ({ ...pos, ...seats[idx] }));
-    }
-
-    
-    const TAG_CONFLICTS = [
-      ["monarchist","republican"],["clerical","anti-clerical"],["socialist","reactionary"],
-      ["free-trade","protectionist"],["centralist","federalist"],["secular","clerical"]
-    ];
-
-    function compatibilityBetween(a,b){
-      const at = new Set((a.tags||[]).map(t=>String(t).trim().toLowerCase()).filter(Boolean));
-      const bt = new Set((b.tags||[]).map(t=>String(t).trim().toLowerCase()).filter(Boolean));
-      let score = 0;
-      for(const t of at) if(bt.has(t)) score += 6;
-      for(const [x,y] of TAG_CONFLICTS){
-        if((at.has(x)&&bt.has(y))||(at.has(y)&&bt.has(x))) score -= 18;
-      }
-      if(a.bloc && b.bloc && a.bloc === b.bloc) score += 8;
-      score -= Math.abs((a.ideology??50)-(b.ideology??50))*0.12;
-      return score;
-    }
-
-function makeCoalitions(parties, totalSeats) {
-      const eligible = parties.filter(p => p.seats > 0);
-      const needed = majority(totalSeats);
-      const results = [];
-      const n = eligible.length;
-      for (let mask = 1; mask < (1 << n); mask++) {
-        const members = [];
-        let seats = 0;
-        let ideology = 0;
-        for (let i = 0; i < n; i++) {
-          if (mask & (1 << i)) {
-            members.push(eligible[i]);
-            seats += eligible[i].seats;
-            ideology += eligible[i].ideology || 50;
-          }
-        }
-        if (seats >= needed) {
-          const avg = ideology / members.length;
-          const spread = Math.max(...members.map(m => m.ideology || 50)) - Math.min(...members.map(m => m.ideology || 50));
-          const surplus = seats - needed;
-          const blocPenalty = new Set(members.map(m => m.bloc || "Independent")).size * 4;
-          let compat = 0, pairs = 0;
-          for(let i=0;i<members.length;i++) for(let j=i+1;j<members.length;j++){ compat += compatibilityBetween(members[i], members[j]); pairs += 1; }
-          const compatAvg = pairs ? compat / pairs : 0;
-          const score = 100 - spread - surplus * 0.35 - blocPenalty + compatAvg;
-          results.push({ id: crypto.randomUUID(), names: members.map(m => m.name), ids: members.map(m => m.id), seats, score: Number(score.toFixed(1)), avgIdeology: Number(avg.toFixed(1)), compatibility: Number(compatAvg.toFixed(1)), minimalWinning: seats - Math.min(...members.map(m => m.seats)) < needed });
-        }
-      }
-      return results.sort((a,b) => b.score - a.score || a.seats - b.seats).slice(0, 40);
-    }
-
-    function getDerived() {
-      const lowerAssigned = roundSeatShares(state.parties, state.lowerHouse.totalSeats, state.roundingMethod, state.thresholdConfig);
-      const upperBaseParties = state.upperSeparate ? (state.upperParties.length ? state.upperParties : state.parties) : state.parties;
-      const upperBiasedParties = transformUpperHouseValues(upperBaseParties, state.upperHouseSystem || "proportional");
-      const upperAssigned = roundSeatShares(upperBiasedParties, state.upperHouse.totalSeats, state.roundingMethod, state.thresholdConfig);
-      const displayParties = ideologyOrderedAssignments(lowerAssigned.map(p => ({ ...p })), state.sortStrength);
-      const displayUpperParties = ideologyOrderedAssignments(upperAssigned.map(p => ({ ...p })), state.sortStrength);
-      const coalitions = makeCoalitions(displayParties, state.lowerHouse.totalSeats);
-      const governmentLeader = displayParties.find(p => p.id === state.governmentLeaderId) || null;
-      const oppositionLeader = displayParties.find(p => p.id === state.oppositionLeaderId) || null;
-      const governmentPartners = displayParties.filter(p => state.governmentIds.includes(p.id) && p.id !== state.governmentLeaderId).map(p => p.name);
-      const oppositionPartners = displayParties.filter(p => state.oppositionIds.includes(p.id) && p.id !== state.oppositionLeaderId).map(p => p.name);
-      const confidenceSupplyPartners = displayParties.filter(p => state.confidenceSupplyIds.includes(p.id)).map(p => p.name);
-      const governmentSeatTotal = displayParties.filter(p => state.governmentIds.includes(p.id)).reduce((s,p)=>s+p.seats,0);
-      const confidenceSeatTotal = displayParties.filter(p => state.confidenceSupplyIds.includes(p.id)).reduce((s,p)=>s+p.seats,0);
-      const margin = governmentSeatTotal + confidenceSeatTotal - majority(state.lowerHouse.totalSeats);
-      const avgWhip = displayParties.filter(p => state.governmentIds.includes(p.id)).reduce((s,p)=>s+(p.whip||75),0) / Math.max(1, displayParties.filter(p => state.governmentIds.includes(p.id)).length);
-      const govIdeologies = displayParties.filter(p => state.governmentIds.includes(p.id)).map(p => p.ideology||50);
-      const spread = govIdeologies.length ? Math.max(...govIdeologies)-Math.min(...govIdeologies) : 0;
-      const stabilityScore = Math.max(0, Math.min(100, Math.round(55 + margin*2 + (avgWhip-70)*0.4 - spread*0.45 - Math.max(0, state.governmentIds.length-1)*4 + confidenceSeatTotal*0.2)));
-      return { lowerAssigned, upperAssigned, displayParties, displayUpperParties, coalitions, lowerMajority: majority(state.lowerHouse.totalSeats), upperMajority: majority(state.upperHouse.totalSeats), governmentLeader, oppositionLeader, governmentPartners, oppositionPartners, confidenceSupplyPartners, governmentSeatTotal, confidenceSeatTotal, stabilityScore, currentCoalitionCount: state.governmentIds.length };
-    }
-
-    function svgChamber({ title, subtitle, assignments, chamberType, totalSeats, maj, crest, governmentLabel, oppositionLabel, crossbenchLabel, governmentLeaderName, oppositionLeaderName, governmentPartners, oppositionPartners, stoolDotColor, large }) {
-      const dots = seatDots(assignments, chamberType, state.sortStrength);
-      const svgMinHeight = large ? "1040px" : "480px";
-      const viewBox = large ? "0 8 100 68" : "0 0 100 78";
-      const uid = `svg_${Math.random().toString(36).slice(2, 9)}`;
-      const woodId = `wood_${uid}`;
-      const shadowId = `paperShadow_${uid}`;
-      const partyMap = Object.fromEntries(assignments.map(p => [p.id, p]));
-      const speakerDot = stoolDotColor ? `<circle cx="50" cy="59.4" r="1.1" fill="${stoolDotColor}" stroke="#f5ead8" stroke-width="0.22" />` : "";
-      const govPartnersText = governmentPartners.length ? `<text x="9" y="21.1" font-size="1.1" fill="#8a6a45" style="font-family: Georgia, serif;">With ${escapeXml(governmentPartners.join(", "))}</text>` : "";
-      const oppPartnersText = oppositionPartners.length ? `<text x="86" y="21.1" text-anchor="end" font-size="1.1" fill="#8a6a45" style="font-family: Georgia, serif;">With ${escapeXml(oppositionPartners.join(", "))}</text>` : "";
-      const supportText = state.confidenceSupplyIds.length ? `<text x="50" y="22.8" text-anchor="middle" font-size="1.15" fill="#9e7c57" style="font-family: Georgia, serif;">Confidence and supply: ${escapeXml(getDerived().confidenceSupplyPartners.join(", "))}</text>` : "";
-      return `
-        <div class="chamber-shell ${large ? 'large' : ''}">
-          <svg viewBox="${viewBox}" style="aspect-ratio: 100 / 78; min-height: ${svgMinHeight};" preserveAspectRatio="xMidYMid meet">
-            <defs>
-              <linearGradient id="${woodId}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6d4322"></stop><stop offset="100%" stop-color="#3f2410"></stop></linearGradient>
-              <filter id="${shadowId}" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="0.8" flood-opacity="0.25"></feDropShadow></filter>
-            </defs>
-            <rect x="1.5" y="1.5" width="97" height="75" rx="3" fill="none" stroke="#7a5b34" stroke-width="0.6"></rect>
-            <rect x="3" y="3" width="94" height="72" rx="2" fill="none" stroke="#b28b57" stroke-width="0.25"></rect>
-            <text x="50" y="8" text-anchor="middle" font-size="4.4" fill="#f2dcc2" style="font-family: Georgia, serif; letter-spacing: .8px;">${escapeXml(title)}</text>
-            <text x="50" y="12.5" text-anchor="middle" font-size="2.4" fill="#f0b270" style="font-family: Georgia, serif;">${escapeXml(subtitle)}</text>
-            ${crest ? `<text x="50" y="18" text-anchor="middle" font-size="4" fill="#d3a15b">${escapeXml(crest)}</text>` : ''}
-            ${supportText}
-            ${dots.map(d => {
-              const party = partyMap[d.partyId] || {};
-              const tip = escapeXml(`${party.name || "Party"} — ${party.seats || 0} seats`);
-              return `<g filter="url(#${shadowId})"><circle data-tooltip="${tip}" cx="${d.x}" cy="${d.y}" r="1.32" fill="${d.color}" stroke="#f6ead6" stroke-width="0.18"></circle></g>`;
-            }).join('')}
-            ${state.showSpeaker ? `<g><rect x="43" y="60.5" width="14" height="6" rx="0.8" fill="url(#${woodId})" stroke="#f3ead8" stroke-width="0.25"></rect><rect x="47" y="57.5" width="6" height="4" rx="0.6" fill="#c29666" stroke="#f3ead8" stroke-width="0.2"></rect>${speakerDot}<text x="50" y="70.8" text-anchor="middle" font-size="1.7" fill="#edae6d" style="font-family: Georgia, serif;">Speaker's Stool</text></g>` : ''}
-            <text x="10" y="73" font-size="2.15" fill="#edae6d" style="font-family: Georgia, serif;">Seats: ${totalSeats}</text>
-            <text x="50" y="73" text-anchor="middle" font-size="2.15" fill="#edae6d" style="font-family: Georgia, serif;">Majority: ${maj}</text>
-            <text x="90" y="73" text-anchor="end" font-size="2.15" fill="#edae6d" style="font-family: Georgia, serif;">Rendered Chamber</text>
-            <text x="9" y="16" font-size="1.8" fill="#f2b26c" style="font-family: Georgia, serif;">${escapeXml(governmentLabel)}</text>
-            ${governmentLeaderName ? `<text x="9" y="19" font-size="1.35" fill="#d79a5f" style="font-family: Georgia, serif;">Led by ${escapeXml(governmentLeaderName)}</text>` : ''}
-            ${govPartnersText}
-            <text x="86" y="16" text-anchor="end" font-size="1.8" fill="#f2b26c" style="font-family: Georgia, serif;">${escapeXml(oppositionLabel)}</text>
-            ${oppositionLeaderName ? `<text x="86" y="19" text-anchor="end" font-size="1.35" fill="#d79a5f" style="font-family: Georgia, serif;">Led by ${escapeXml(oppositionLeaderName)}</text>` : ''}
-            ${oppPartnersText}
-            <text x="50" y="76" text-anchor="middle" font-size="1.5" fill="#d79a5f" style="font-family: Georgia, serif;">${escapeXml(crossbenchLabel)}</text>
-          </svg>
-        </div>`;
-    }
-
-    function escapeXml(s) {
-      return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-    }
-
-    function bindControls() {
-      const map = {
-        parliamentName: "parliamentName",
-        crest: "crest",
-        inputMode: "inputMode",
-        roundingMethod: "roundingMethod",
-        governmentLabel: "governmentLabel",
-        oppositionLabel: "oppositionLabel",
-        crossbenchLabel: "crossbenchLabel",
-        whipMode: "whipMode",
-        billType: "billType",
-        majorityRule: "majorityRule",
-        ministryName: "ministryName",
-        primeMinister: "primeMinister",
-        presidentName: "presidentName",
-        governmentType: "governmentType",
-        upperHouseSystem: "upperHouseSystem",
-        houseType: "houseType",
-        upperHouseType: "upperHouseType",
-        lowerHouseName: ["lowerHouse","houseName"],
-        lowerHouseSeats: ["lowerHouse","totalSeats"],
-        upperHouseName: ["upperHouse","houseName"],
-        upperHouseSeats: ["upperHouse","totalSeats"],
-        thresholdType: ["thresholdConfig","thresholdType"],
-        thresholdValue: ["thresholdConfig","thresholdValue"],
-        sortStrength: "sortStrength"
-      };
-      Object.entries(map).forEach(([id, path]) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const handler = () => {
-          if (Array.isArray(path)) state[path[0]][path[1]] = el.type === "number" ? Number(el.value || 0) : el.value;
-          else state[path] = el.type === "number" || el.type === "range" ? Number(el.value || 0) : el.value;
-          render();
+        let state = {
+            totalSeats: 300,
+            parties: JSON.parse(JSON.stringify(DEFAULT_PARTIES)),
+            history: [],
+            screenshots: [],
+            savedReports: [],
         };
-        el.addEventListener("change", handler);
-        if (el.tagName !== "SELECT") el.addEventListener("input", handler);
-      });
-      document.getElementById("thresholdEnabled").addEventListener("change", e => { state.thresholdConfig.enabled = e.target.checked; render(); });
-      document.getElementById("thresholdExemptLargest").addEventListener("change", e => { state.thresholdConfig.exemptLargest = e.target.checked; render(); });
-      document.getElementById("upperEnabled").addEventListener("change", e => { state.upperEnabled = e.target.checked; render(); });
-      document.getElementById("upperSeparate").addEventListener("change", e => { state.upperSeparate = e.target.checked; render(); });
-      document.getElementById("showSpeaker").addEventListener("change", e => { state.showSpeaker = e.target.checked; render(); });
 
-      document.getElementById("parseTextBtn").addEventListener("click", parseTextIntoParties);
-      document.getElementById("parseUpperBtn").addEventListener("click", parseUpperIntoParties);
-      document.getElementById("addPartyBtn").addEventListener("click", () => {
-        state.parties.push({ id: crypto.randomUUID(), name: `New Party ${state.parties.length + 1}`, value: 0, color: randomColor(String(state.parties.length + 1)), ideology: 50, bloc: "Independent", whip: 75, labels: [], tags: [], preset: "custom" });
-        render();
-      });
-      document.getElementById("saveSnapshotBtn").addEventListener("click", saveSnapshot);
-      document.getElementById("exportBtn").addEventListener("click", exportSession);
-      document.getElementById("exportSvgBtn").addEventListener("click", exportCurrentChamberSvg);
-      document.getElementById("addTimelineBtn").addEventListener("click", addTimelineEvent);
-      document.getElementById("addBillBtn").addEventListener("click", addBill);
-
-      document.getElementById("confidenceBtn").addEventListener("click", () => runChamberAction("confidence"));
-      document.getElementById("budgetBtn").addEventListener("click", () => runChamberAction("budget"));
-      document.getElementById("dissolutionBtn").addEventListener("click", () => runChamberAction("dissolution"));
-      document.getElementById("formGovBtn").addEventListener("click", () => runChamberAction("form-government"));
-
-      document.getElementById("putBillToVoteBtn").addEventListener("click", putSelectedBillToVote);
-      document.getElementById("createBudgetBillBtn").addEventListener("click", createBudgetBill);
-      ["budgetMilitary","budgetWelfare","budgetInfrastructure","budgetChurch","budgetTariffs","budgetEducation","budgetDebt","budgetColonial","budgetAgriculture"].forEach(id => {
-        document.getElementById(id).addEventListener("change", e => {
-          const key = id.replace("budget","").toLowerCase();
-          if (!state.budgetPlan) state.budgetPlan = {};
-          state.budgetPlan[key] = Number(e.target.value);
-          render();
-        });
-      });
-
-
-      document.querySelectorAll(".tab").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
-      document.getElementById("governmentLeaderSelect").addEventListener("change", e => { state.governmentLeaderId = e.target.value || ""; render(); });
-      document.getElementById("oppositionLeaderSelect").addEventListener("change", e => { state.oppositionLeaderId = e.target.value || ""; render(); });
-
-      document.getElementById("billDate").value = state.billDraftDate || "1836-01-01";
-      document.getElementById("timelineDate").value = state.timelineDraftDate || "1836-01-01";
-      document.getElementById("billDate").min = "1836-01-01";
-      document.getElementById("timelineDate").min = "1836-01-01";
-      document.getElementById("billDate").addEventListener("input", e => { state.billDraftDate = e.target.value || "1836-01-01"; });
-      document.getElementById("timelineDate").addEventListener("input", e => { state.timelineDraftDate = e.target.value || "1836-01-01"; });
-    }
-
-    function switchTab(name) {
-      document.querySelectorAll(".tab").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === name));
-      document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.add("hidden"));
-      document.getElementById(`tab-${name}`).classList.remove("hidden");
-      requestAnimationFrame(() => {
-        render();
-        window.dispatchEvent(new Event("resize"));
-      });
-    }
-
-    function parseTextIntoParties() {
-      const parsed = parseLooseInput(state.rawInput);
-      const existing = state.parties;
-      if (parsed.length) {
-        state.parties = parsed.map((p, i) => ({ ...p, ideology: existing[i]?.ideology ?? 50, bloc: existing[i]?.bloc ?? "Independent", whip: existing[i]?.whip ?? 75, labels: existing[i]?.labels ?? [] }));
-        document.getElementById("importMessage").textContent = `Imported ${parsed.length} parties.`;
-      } else {
-        document.getElementById("importMessage").textContent = "No readable rows found.";
-      }
-      render();
-    }
-
-    
-    function parseUpperIntoParties() {
-      const parsed = parseLooseInput(state.upperRawInput || "");
-      const existing = state.upperParties || [];
-      const lowerByName = new Map((state.parties || []).map(p => [String(p.name).toLowerCase(), p]));
-      if (parsed.length) {
-        state.upperParties = parsed.map((p, i) => {
-          const lower = lowerByName.get(String(p.name).toLowerCase());
-          const prev = existing.find(x => String(x.name).toLowerCase() === String(p.name).toLowerCase()) || existing[i];
-          return {
-            ...p,
-            id: lower?.id || prev?.id || p.id,
-            color: lower?.color || prev?.color || p.color,
-            ideology: lower?.ideology ?? prev?.ideology ?? 50,
-            bloc: lower?.bloc ?? prev?.bloc ?? "Independent",
-            whip: lower?.whip ?? prev?.whip ?? 75,
-            labels: prev?.labels ?? [],
-            tags: lower?.tags ?? prev?.tags ?? [],
-            preset: lower?.preset ?? prev?.preset ?? "custom"
-          };
-        });
-        document.getElementById("importMessage").textContent = `Imported ${parsed.length} upper-house parties.`;
-      } else {
-        document.getElementById("importMessage").textContent = "No readable upper-house rows found.";
-      }
-      render();
-    }
-
-function saveSnapshot() {
-      const currentSvg = document.querySelector("#lowerChamber svg");
-      const image = currentSvg ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(currentSvg.outerHTML)}` : "";
-      state.snapshots.unshift({
-        id: crypto.randomUUID(),
-        date: new Date().toLocaleString(),
-        name: state.parliamentName,
-        image,
-        exported: structuredClone(state),
-      });
-      state.timeline.unshift({ id: crypto.randomUUID(), date: document.getElementById("timelineDate").value || state.timelineDraftDate || state.defaultDate, type: "session", title: `Saved parliament: ${state.parliamentName}`, description: "Parliament snapshot saved.", chamber: state.lowerHouse.houseName, image });
-      render();
-    }
-
-    function exportSession() {
-      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${state.parliamentName.toLowerCase().replace(/[^a-z0-9]+/gi, "-") || "parliament"}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function addTimelineEvent() {
-      const date = document.getElementById("timelineDate").value;
-      const type = document.getElementById("timelineType").value;
-      const title = document.getElementById("timelineTitle").value.trim();
-      const chamber = document.getElementById("timelineChamber").value.trim();
-      const description = document.getElementById("timelineDescription").value.trim();
-      if (!title) return;
-      state.timeline.unshift({ id: crypto.randomUUID(), date, type, title, description, chamber });
-      document.getElementById("timelineTitle").value = "";
-      document.getElementById("timelineDescription").value = "";
-      render();
-    }
-
-    function addBill() {
-      createPendingBillFromForm();
-    }
-
-    function renderLegend(target, assignments) {
-      target.innerHTML = assignments.map(p => `
-        <div class="legend-row">
-          <div class="party-chip"><span class="swatch" style="background:${p.color}"></span><span>${escapeXml(p.name)}</span></div>
-          <div class="right">${p.value}</div>
-          <div class="right"><strong>${p.seats}</strong></div>
-          <div class="right mini">LR ${p.ideology}</div>
-        </div>`).join("");
-    }
-
-    function renderPartyEditor(displayParties) {
-      const PRESETS = {
-        custom:{ideology:50,tags:[]},
-        conservative:{ideology:22,tags:["conservative","monarchist"]},
-        liberal:{ideology:58,tags:["liberal","reform"]},
-        agrarian:{ideology:45,tags:["agrarian","rural"]},
-        socialist:{ideology:82,tags:["socialist","labor"]},
-        clerical:{ideology:35,tags:["clerical","religious"]},
-        nationalist:{ideology:65,tags:["nationalist"]},
-        reactionary:{ideology:12,tags:["reactionary","monarchist"]},
-        centrist:{ideology:50,tags:["centrist"]},
-        radical:{ideology:78,tags:["radical","anti-clerical"]}
-      };
-      const root = document.getElementById("partyEditor");
-      root.innerHTML = "";
-      displayParties.forEach((party) => {
-        const div = document.createElement("div");
-        div.className = "party-editor-row fade-in";
-        const preset = party.preset || "custom";
-        div.innerHTML = `
-          <input value="${escapeXml(party.name)}" />
-          <input type="number" value="${party.value}" />
-          <input type="color" value="${party.color}" />
-          <input value="${escapeXml(party.bloc || '')}" />
-          <div class="range-wrap"><small>Left-right <span>${party.ideology}</span></small><input type="range" min="0" max="100" step="1" value="${party.ideology}"></div>
-          <div class="range-wrap"><small>Whip <span>${party.whip}</span></small><input type="range" min="0" max="100" step="1" value="${party.whip}"></div>
-          <div class="range-wrap"><small>Ideology preset</small><select>${Object.keys(PRESETS).map(k=>`<option value="${k}" ${k===preset?'selected':''}>${k[0].toUpperCase()+k.slice(1)}</option>`).join("")}</select></div>
-          <input value="${escapeXml((party.tags || []).join(', '))}" placeholder="traits/tags" />
-          <button class="delete-btn">×</button>`;
-        const [nameEl, valueEl, colorEl, blocEl, ideologyWrap, whipWrap, presetWrap, tagsEl, deleteBtn] = div.children;
-
-        nameEl.addEventListener("input", e => { findParty(party.id).name = e.target.value; });
-        valueEl.addEventListener("input", e => { findParty(party.id).value = Number(e.target.value || 0); });
-        colorEl.addEventListener("input", e => { findParty(party.id).color = e.target.value; });
-        blocEl.addEventListener("input", e => { findParty(party.id).bloc = e.target.value; });
-
-        const ideEl = ideologyWrap.querySelector("input");
-        const ideLabel = ideologyWrap.querySelector("span");
-        ideEl.addEventListener("input", e => { const v = Number(e.target.value); const fp=findParty(party.id); fp.ideology = v; fp.preset = "custom"; ideLabel.textContent = v; });
-
-        const whipEl = whipWrap.querySelector("input");
-        const whipLabel = whipWrap.querySelector("span");
-        whipEl.addEventListener("input", e => { const v = Number(e.target.value); findParty(party.id).whip = v; whipLabel.textContent = v; });
-
-        const presetEl = presetWrap.querySelector("select");
-        presetEl.addEventListener("change", e => {
-          const fp = findParty(party.id);
-          fp.preset = e.target.value;
-          if (e.target.value !== "custom") {
-            fp.ideology = PRESETS[e.target.value].ideology;
-            fp.tags = [...PRESETS[e.target.value].tags];
-          }
-          render();
-        });
-
-        tagsEl.addEventListener("input", e => { findParty(party.id).tags = e.target.value.split(",").map(x => x.trim()).filter(Boolean); });
-
-        [nameEl, valueEl, blocEl, tagsEl].forEach(el => el.addEventListener("change", () => render()));
-        colorEl.addEventListener("change", () => render());
-        ideEl.addEventListener("change", () => render());
-        whipEl.addEventListener("change", () => render());
-
-        deleteBtn.addEventListener("click", () => {
-          state.parties = state.parties.filter(x => x.id !== party.id);
-          state.governmentIds = state.governmentIds.filter(id => id !== party.id);
-          state.oppositionIds = state.oppositionIds.filter(id => id !== party.id);
-          state.confidenceSupplyIds = state.confidenceSupplyIds.filter(id => id !== party.id);
-          if (state.governmentLeaderId === party.id) state.governmentLeaderId = "";
-          if (state.oppositionLeaderId === party.id) state.oppositionLeaderId = "";
-          render();
-        });
-
-        root.appendChild(div);
-      });
-    }
-
-    function findParty(id) { return state.parties.find(p => p.id === id); }
-
-    function renderCoalitionZones(displayParties) {
-      const root = document.getElementById("groupZones");
-      const groups = {
-        government: displayParties.filter(p => state.governmentIds.includes(p.id)),
-        opposition: displayParties.filter(p => state.oppositionIds.includes(p.id)),
-        crossbench: displayParties.filter(p => !state.governmentIds.includes(p.id) && !state.oppositionIds.includes(p.id)),
-      };
-      root.innerHTML = [
-        { key: "government", title: `${state.governmentLabel} (${groups.government.reduce((s,p)=>s+p.seats,0)} seats)` },
-        { key: "opposition", title: `${state.oppositionLabel} (${groups.opposition.reduce((s,p)=>s+p.seats,0)} seats)` },
-        { key: "crossbench", title: `${state.crossbenchLabel} (${groups.crossbench.reduce((s,p)=>s+p.seats,0)} seats)` },
-      ].map(g => `
-        <div class="dropzone fade-in" data-zone="${g.key}">
-          <h4>${escapeXml(g.title)}</h4>
-          ${(groups[g.key] || []).map(p => `<div class="drag-party" draggable="true" data-party="${p.id}"><div class="party-chip"><span class="swatch" style="background:${p.color}"></span><span>${escapeXml(p.name)}</span></div><span class="pill">${p.seats}</span></div>`).join("")}
-        </div>`).join("");
-
-      root.querySelectorAll(".drag-party").forEach(el => {
-        el.addEventListener("dragstart", e => {
-          draggedPartyId = el.dataset.party;
-          e.dataTransfer.setData("text/plain", draggedPartyId);
-        });
-      });
-      root.querySelectorAll(".dropzone").forEach(zone => {
-        zone.addEventListener("dragover", e => e.preventDefault());
-        zone.addEventListener("drop", e => {
-          e.preventDefault();
-          const id = draggedPartyId || e.dataTransfer.getData("text/plain");
-          moveParty(id, zone.dataset.zone);
-        });
-      });
-    }
-
-    function moveParty(partyId, target) {
-      if (!partyId) return;
-      state.governmentIds = state.governmentIds.filter(id => id !== partyId);
-      state.oppositionIds = state.oppositionIds.filter(id => id !== partyId);
-      if (target === "government") state.governmentIds.push(partyId);
-      if (target === "opposition") state.oppositionIds.push(partyId);
-      if (state.governmentLeaderId && !state.governmentIds.includes(state.governmentLeaderId)) state.governmentLeaderId = "";
-      if (state.oppositionLeaderId && !state.oppositionIds.includes(state.oppositionLeaderId)) state.oppositionLeaderId = "";
-      render();
-    }
-
-    function renderSupportAgreements(displayParties) {
-      const root = document.getElementById("supportAgreementsList");
-      if (!root) return;
-      const eligible = displayParties.filter(p => !state.governmentIds.includes(p.id));
-      root.innerHTML = eligible.map(p => `
-        <div class="support-row fade-in">
-          <div class="party-chip"><span class="swatch" style="background:${p.color}"></span><span>${escapeXml(p.name)}</span><span class="small">${p.seats} seats</span></div>
-          <select data-support-party="${p.id}">
-            <option value="none" ${supportLevelForParty(p.id)==="none"?"selected":""}>No agreement</option>
-            <option value="confidence" ${supportLevelForParty(p.id)==="confidence"?"selected":""}>Confidence only</option>
-            <option value="budget" ${supportLevelForParty(p.id)==="budget"?"selected":""}>Confidence + budget</option>
-          </select>
-        </div>`).join("");
-      root.querySelectorAll("[data-support-party]").forEach(el => {
-        el.addEventListener("change", e => {
-          setSupportLevel(e.target.dataset.supportParty, e.target.value);
-          render();
-        });
-      });
-    }
-
-    function renderLeaderSelects(displayParties) {
-      const gov = displayParties.filter(p => state.governmentIds.includes(p.id));
-      const opp = displayParties.filter(p => state.oppositionIds.includes(p.id));
-      document.getElementById("governmentLeaderLabel").textContent = `${state.governmentLabel} leader`;
-      document.getElementById("oppositionLeaderLabel").textContent = `${state.oppositionLabel} leader`;
-      const govSelect = document.getElementById("governmentLeaderSelect");
-      const oppSelect = document.getElementById("oppositionLeaderSelect");
-      govSelect.innerHTML = `<option value="">None</option>` + gov.map(p => `<option value="${p.id}">${escapeXml(p.name)}</option>`).join("");
-      oppSelect.innerHTML = `<option value="">None</option>` + opp.map(p => `<option value="${p.id}">${escapeXml(p.name)}</option>`).join("");
-      govSelect.value = state.governmentLeaderId || "";
-      oppSelect.value = state.oppositionLeaderId || "";
-    }
-
-    function renderCoalitions(coalitions) {
-      const root = document.getElementById("coalitionsGrid");
-      root.innerHTML = coalitions.slice(0, 12).map(c => `
-        <div class="coalition-item">
-          <div class="title-row"><strong>${escapeXml(c.names.join(" + "))}</strong>${c.minimalWinning ? `<span class="pill">Minimal</span>` : ``}</div>
-          <div class="mini">Average ideology ${c.avgIdeology} · viability ${c.score} · compatibility ${compatibilityLabel(c.compatibility || c.score)}</div>
-          <div class="title-row" style="margin-top:8px;"><span class="mini">Seats</span><strong>${c.seats}</strong></div>
-          <div class="bar"><span style="width:${(c.seats / state.lowerHouse.totalSeats) * 100}%"></span></div>
-        </div>`).join("");
-      document.getElementById("billCoalition").innerHTML = coalitions.map(c => `<option>${escapeXml(c.names.join(" + "))}</option>`).join("");
-    }
-
-    function renderTimeline() {
-      const root = document.getElementById("timelineList");
-      const ordered = [...state.timeline].sort((a,b) => String(a.date).localeCompare(String(b.date)));
-      root.innerHTML = ordered.map(item => `
-        <div class="timeline-item fade-in">
-          <div class="title-row"><div><strong>${escapeXml(item.title)}</strong> <span class="pill">${escapeXml(item.type)}</span></div><div class="mini">${escapeXml(item.date)} · ${escapeXml(item.chamber)}</div></div>
-          ${item.image ? `<div style="margin-top:10px;"><img src="${item.image}" alt="parliament snapshot" style="max-width:240px;border:1px solid var(--line);border-radius:12px;"></div>` : ``}
-          <div style="margin-top:8px;">${escapeXml(item.description || "")}</div>
-          <div class="btns" style="margin-top:8px;"><button data-del-timeline="${item.id}" style="width:auto;">Delete</button></div>
-        </div>`).join("");
-      root.querySelectorAll("[data-del-timeline]").forEach(btn => btn.addEventListener("click", () => { state.timeline = state.timeline.filter(x => x.id !== btn.dataset.delTimeline); render(); }));
-    }
-
-    function renderHistory() {
-      const root = document.getElementById("historyList");
-      root.innerHTML = state.snapshots.map(item => `
-        <div class="history-item">
-          <div class="title-row"><div><strong>${escapeXml(item.name)}</strong><div class="mini">${escapeXml(item.date)}</div></div><div class="btns"><button data-load-history="${item.id}" style="width:auto;">Load</button><button data-del-history="${item.id}" style="width:auto;">Delete</button></div></div>
-        </div>`).join("");
-      root.querySelectorAll("[data-load-history]").forEach(btn => btn.addEventListener("click", () => {
-        const snap = state.snapshots.find(x => x.id === btn.dataset.loadHistory);
-        if (snap) { state = mergeState(defaultState, structuredClone(snap.exported)); render(); }
-      }));
-      root.querySelectorAll("[data-del-history]").forEach(btn => btn.addEventListener("click", () => { state.snapshots = state.snapshots.filter(x => x.id !== btn.dataset.delHistory); render(); }));
-    }
-
-    
-    function createPendingBillFromForm() {
-      const title = document.getElementById("billTitle").value.trim();
-      if (!title) return;
-      const date = document.getElementById("billDate").value || state.billDraftDate || state.defaultDate;
-      const house = document.getElementById("billHouse").value.trim() || state.lowerHouse.houseName;
-      const coalition = document.getElementById("billCoalition").value || "";
-      state.pendingBills.unshift({
-        id: crypto.randomUUID(),
-        title, date, house, coalition,
-        billType: state.billType,
-        majorityRule: state.majorityRule
-      });
-      document.getElementById("billTitle").value = "";
-      render();
-    }
-
-    function createBudgetBill() {
-      const summary = Object.entries(state.budgetPlan || {})
-        .map(([k,v]) => `${k}:${v > 0 ? "up" : v < 0 ? "down" : "hold"}`)
-        .join(", ");
-      state.pendingBills.unshift({
-        id: crypto.randomUUID(),
-        title: `Budget ${document.getElementById("timelineDate").value || state.defaultDate}`,
-        date: document.getElementById("timelineDate").value || state.timelineDraftDate || state.defaultDate,
-        house: state.lowerHouse.houseName,
-        coalition: "Ministry budget",
-        billType: "budget",
-        majorityRule: "all-members",
-        budgetPlan: { ...(state.budgetPlan || {}) },
-        summary
-      });
-      state.chamberActionResult = "Budget bill created and added to pending bills.";
-      render();
-    }
-
-    function simulateVoteForPendingBill(bill) {
-      const d = getDerived();
-      let yes = 0, no = 0, abstain = 0;
-      for (const party of d.displayParties) {
-        const seats = Number(party.seats || 0);
-        if (!seats) continue;
-        const discipline = Number(party.whip || 75) / 100;
-        const supportLevel = supportLevelForParty(party.id);
-        const inGovernment = state.governmentIds.includes(party.id);
-        let partyYes = 0, partyNo = 0, partyAbstain = 0;
-
-        if (bill.billType === "budget") {
-          const forecast = budgetForecastForParty(party);
-          if (inGovernment) {
-            partyYes = Math.round(seats * (0.94 + discipline * 0.04));
-            if (partyYes > seats) partyYes = seats;
-          } else if (supportLevel === "budget") {
-            partyYes = Math.round(seats * (0.88 + discipline * 0.05));
-            if (partyYes > seats) partyYes = seats;
-          } else if (supportLevel === "confidence") {
-            if (forecast.vote === "yes") partyYes = Math.round(seats * 0.55);
-            else if (forecast.vote === "abstain") partyAbstain = Math.round(seats * 0.45);
-          } else {
-            if (forecast.vote === "yes") partyYes = Math.round(seats * 0.65);
-            else if (forecast.vote === "abstain") partyAbstain = Math.round(seats * 0.35);
-          }
-        } else if (bill.billType === "confidence") {
-          if (inGovernment) partyYes = Math.round(seats * (0.95 + discipline * 0.03));
-          else if (supportLevel === "confidence" || supportLevel === "budget") partyYes = Math.round(seats * (0.84 + discipline * 0.08));
-        } else {
-          const coalitionSupport = String(bill.coalition || "").split(" + ").filter(Boolean);
-          const inCoalition = coalitionSupport.includes(party.name);
-          if (inGovernment || inCoalition) {
-            partyYes = Math.round(seats * (0.86 + discipline * 0.08));
-          } else if (supportLevel === "budget" && bill.billType !== "constitutional") {
-            partyAbstain = Math.round(seats * 0.2);
-          }
+        // Load from localStorage
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('vic3_parliament_tool');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    state.totalSeats = parsed.totalSeats || 300;
+                    state.parties = parsed.parties || JSON.parse(JSON.stringify(DEFAULT_PARTIES));
+                    state.history = parsed.history || [];
+                    state.screenshots = parsed.screenshots || [];
+                    state.savedReports = parsed.savedReports || [];
+                }
+            } catch (e) {
+                console.warn('Could not load saved state, using defaults.');
+            }
         }
 
-        const used = partyYes + partyAbstain;
-        partyNo = Math.max(0, seats - used);
-        yes += partyYes; no += partyNo; abstain += partyAbstain;
-      }
-      const threshold = voteThreshold(bill.majorityRule || "votes-cast", state.lowerHouse.totalSeats, yes + no);
-      const status = yes >= threshold ? "Passed" : "Failed";
-      return { yes, no, abstain, threshold, status };
-    }
-
-    function putSelectedBillToVote() {
-      const id = document.getElementById("pendingBillSelect").value;
-      const bill = (state.pendingBills || []).find(b => b.id === id);
-      if (!bill) {
-        state.chamberActionResult = "No pending bill selected.";
-        render();
-        return;
-      }
-
-      const lowerVote = simulateVoteForPendingBill(bill);
-      state.bills.unshift({ ...bill, ...lowerVote, house: bill.house || state.lowerHouse.houseName });
-      state.lastVoteResult = { ...lowerVote, houseLabel: state.lowerHouse.houseName, title: bill.title, totalSeats: state.lowerHouse.totalSeats };
-      state.timeline.unshift(makeTimelineEntryWithImage({
-        id: crypto.randomUUID(),
-        date: bill.date || state.billDraftDate || state.defaultDate,
-        type: "bill",
-        title: `${bill.title} — ${state.lowerHouse.houseName}`,
-        description: `${lowerVote.status} (${lowerVote.yes}-${lowerVote.no}, abst. ${lowerVote.abstain})`,
-        chamber: state.lowerHouse.houseName
-      }, "lower"));
-
-      let resultText = `${bill.title}: ${lowerVote.status} in ${state.lowerHouse.houseName} with ${lowerVote.yes} yes, ${lowerVote.no} no, ${lowerVote.abstain} abstentions.`;
-
-      if (lowerVote.status === "Passed" && state.upperEnabled) {
-        const upperBill = { ...bill, house: state.upperHouse.houseName };
-        const upperDisplay = getDerived().displayUpperParties || [];
-        let yes = 0, no = 0, abstain = 0;
-        for (const party of upperDisplay) {
-          const seats = Number(party.seats || 0);
-          if (!seats) continue;
-          const discipline = Number(party.whip || 75) / 100;
-          let partyYes = 0, partyNo = 0, partyAbstain = 0;
-          if (upperBill.billType === "budget") {
-            partyYes = Math.round(seats * (0.45 + discipline * 0.18));
-          } else {
-            if ((party.ideology || 50) >= 45 && (party.ideology || 50) <= 65) partyYes = Math.round(seats * (0.45 + discipline * 0.2));
-            else if ((party.ideology || 50) < 45) partyYes = Math.round(seats * 0.35);
-            else partyYes = Math.round(seats * 0.4);
-          }
-          const used = partyYes + partyAbstain;
-          partyNo = Math.max(0, seats - used);
-          yes += partyYes; no += partyNo; abstain += partyAbstain;
+        function saveState() {
+            try {
+                const toSave = {
+                    totalSeats: state.totalSeats,
+                    parties: state.parties,
+                    history: state.history.slice(-50), // limit history entries
+                    screenshots: state.screenshots.slice(-30), // limit screenshots
+                    savedReports: state.savedReports.slice(-20),
+                };
+                localStorage.setItem('vic3_parliament_tool', JSON.stringify(toSave));
+            } catch (e) {
+                showToast('⚠️ Storage full! Consider clearing old screenshots.');
+            }
         }
-        const threshold = voteThreshold(upperBill.majorityRule || "votes-cast", state.upperHouse.totalSeats, yes + no);
-        const status = yes >= threshold ? "Passed" : "Failed";
-        const upperVote = { yes, no, abstain, threshold, status };
-        state.bills.unshift({ ...upperBill, ...upperVote });
-        state.timeline.unshift(makeTimelineEntryWithImage({
-          id: crypto.randomUUID(),
-          date: bill.date || state.billDraftDate || state.defaultDate,
-          type: "bill",
-          title: `${bill.title} — ${state.upperHouse.houseName}`,
-          description: `${upperVote.status} (${upperVote.yes}-${upperVote.no}, abst. ${upperVote.abstain})`,
-          chamber: state.upperHouse.houseName
-        }, "upper"));
-        state.lastVoteResult = { ...upperVote, houseLabel: state.upperHouse.houseName, title: bill.title, totalSeats: state.upperHouse.totalSeats };
-        resultText += ` Then ${upperVote.status} in ${state.upperHouse.houseName} with ${upperVote.yes} yes, ${upperVote.no} no, ${upperVote.abstain} abstentions.`;
-      }
 
-      state.pendingBills = state.pendingBills.filter(b => b.id !== id);
-      state.chamberActionResult = resultText;
-      render();
-    }
+        function showToast(msg) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
 
-    function renderPendingBills() {
-      const root = document.getElementById("pendingBillsList");
-      const sel = document.getElementById("pendingBillSelect");
-      const pending = state.pendingBills || [];
-      if (sel) {
-        sel.innerHTML = `<option value="">Select a bill</option>` + pending.map(b => `<option value="${b.id}">${escapeXml(b.title)} · ${escapeXml(b.billType || "ordinary")}</option>`).join("");
-      }
-      if (!root) return;
-      if (!pending.length) {
-        root.innerHTML = `<div class="small">No pending bills yet. Create one in the Bills tab.</div>`;
-        return;
-      }
-      root.innerHTML = pending.map(b => `
-        <div class="bill-item fade-in">
-          <div class="title-row"><div><strong>${escapeXml(b.title)}</strong> <span class="pill">${escapeXml(b.billType || "ordinary")}</span></div><div class="small">${escapeXml(b.date)} · ${escapeXml(b.house)}</div></div>
-          <div class="small" style="margin-top:6px">${escapeXml(b.coalition || "")} · ${escapeXml(b.majorityRule || "votes-cast")}</div>
-          ${b.summary ? `<div class="small" style="margin-top:6px">${escapeXml(b.summary)}</div>` : ``}
-          <div style="margin-top:8px"><button class="btn" data-del-pending="${b.id}" style="width:auto">Delete pending bill</button></div>
-        </div>`).join("");
-      root.querySelectorAll("[data-del-pending]").forEach(btn => btn.addEventListener("click", () => {
-        state.pendingBills = pending.filter(x => x.id !== btn.dataset.delPending);
-        render();
-      }));
-    }
-
-    function renderBudgetForecast(displayParties) {
-      const root = document.getElementById("budgetForecast");
-      if (!root) return;
-      const rows = displayParties.map(p => {
-        const f = budgetForecastForParty(p);
-        return { name: p.name, seats: p.seats, vote: f.vote, score: f.score };
-      });
-      const yesSeats = rows.filter(r => r.vote === "yes").reduce((s,r)=>s+r.seats,0);
-      const noSeats = rows.filter(r => r.vote === "no").reduce((s,r)=>s+r.seats,0);
-      const abstainSeats = rows.filter(r => r.vote === "abstain").reduce((s,r)=>s+r.seats,0);
-      root.innerHTML = `
-        <div class="small" style="margin-bottom:8px;">Forecast: YES ${yesSeats} · NO ${noSeats} · ABSTAIN ${abstainSeats}</div>
-        ${rows.map(r => `<div class="small" style="margin-bottom:6px;">${escapeXml(r.name)}: <strong>${r.vote.toUpperCase()}</strong> (${r.score >= 0 ? "+" : ""}${r.score}) · ${r.seats} seats</div>`).join("")}
-      `;
-    }
-
-function renderBills() {
-      const root = document.getElementById("billList");
-      root.innerHTML = state.bills.map(bill => `
-        <div class="bill-item">
-          <div class="title-row"><div><strong>${escapeXml(bill.title)}</strong> <span class="pill ${bill.status === 'Passed' ? 'pass' : 'fail'}">${escapeXml(bill.status)}</span></div><div class="mini">${escapeXml(bill.date)} · ${escapeXml(bill.house)}</div></div>
-          <div style="margin-top:8px;">${bill.yes}-${bill.no}${typeof bill.abstain === 'number' ? ` / abst. ${bill.abstain}` : ''}</div>
-          <div class="mini" style="margin-top:6px;">${escapeXml(bill.coalition)}</div>
-          <div class="btns" style="margin-top:8px;"><button data-del-bill="${bill.id}" style="width:auto;">Delete</button></div>
-        </div>`).join("");
-      root.querySelectorAll("[data-del-bill]").forEach(btn => btn.addEventListener("click", () => { state.bills = state.bills.filter(x => x.id !== btn.dataset.delBill); render(); }));
-    }
-
-    function exportCurrentChamberSvg(){
-      const active = document.querySelector("#tab-chamber.active #presentationLower svg") || document.querySelector("#lowerChamber svg");
-      if(!active) return;
-      const blob = new Blob([active.outerHTML], {type:"image/svg+xml;charset=utf-8"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${(state.parliamentName || "parliament").toLowerCase().replace(/[^a-z0-9]+/g,"-")}-chamber.svg`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-
-    function runChamberAction(kind){
-      const d = getDerived();
-      let title = "", description = "", ok = false;
-      const totalSupport = d.governmentSeatTotal + d.confidenceSeatTotal;
-      const budgetSupport = d.governmentSeatTotal + d.budgetSeatTotal;
-      if(kind === "confidence"){
-        title = "Motion of confidence";
-        ok = totalSupport >= d.lowerMajority;
-        description = ok ? `Government survives with ${totalSupport} seats of support.` : `Government falls with only ${totalSupport} seats of support.`;
-        if(!ok) state.governmentType = "caretaker";
-      } else if(kind === "budget"){
-        title = "Budget vote";
-        ok = budgetSupport >= d.lowerMajority;
-        description = ok ? `Budget confidence passes with ${budgetSupport} supportive seats.` : `Budget confidence is defeated with only ${budgetSupport} supportive seats.`;
-        if(!ok) state.governmentType = "minority";
-      } else if(kind === "dissolution"){
-        title = "Dissolution threat";
-        ok = d.stabilityScore < 45;
-        description = ok ? `The ministry seeks dissolution amid weak stability (${d.stabilityScore}/100).` : `The ministry threatens dissolution, but the chamber remains governable (${d.stabilityScore}/100).`;
-      } else if(kind === "form-government"){
-        title = "Government formation";
-        ok = totalSupport >= d.lowerMajority || d.governmentSeatTotal >= d.lowerMajority;
-        description = ok ? `${state.ministryName || "New ministry"} is formed under ${state.primeMinister || (d.governmentLeader?.name || "a designated leader")}.` : `No stable ministry can be formed with the current alignment.`;
-        if(ok && state.governmentIds.length === 1) state.governmentType = "single-party";
-        else if(ok && totalSupport > d.governmentSeatTotal) state.governmentType = "minority";
-        else if(ok) state.governmentType = "coalition";
-      }
-      state.chamberActionResult = `${title}: ${description}`;
-      state.timeline.unshift({ id: crypto.randomUUID(), date: document.getElementById("timelineDate").value || state.timelineDraftDate || state.defaultDate, type: kind === "budget" ? "bill" : "government", title, description, chamber: state.lowerHouse.houseName });
-      render();
-    }
-
-    function attachSeatTooltips(){
-      const tooltip = document.getElementById("seatTooltip");
-      document.querySelectorAll("svg circle[data-tooltip]").forEach(el => {
-        el.addEventListener("mouseenter", () => { tooltip.textContent = el.dataset.tooltip; tooltip.style.display = "block"; });
-        el.addEventListener("mousemove", e => { tooltip.style.left = (e.clientX + 12) + "px"; tooltip.style.top = (e.clientY + 12) + "px"; });
-        el.addEventListener("mouseleave", () => { tooltip.style.display = "none"; });
-      });
-    }
-
-function setupSeatTooltips(){
-      const tip = document.getElementById("seatTooltip");
-      document.querySelectorAll('svg [data-tooltip]').forEach(el => {
-        el.addEventListener('mousemove', e => {
-          tip.textContent = el.getAttribute('data-tooltip') || '';
-          tip.style.display = 'block';
-          tip.style.left = (e.clientX + 12) + 'px';
-          tip.style.top = (e.clientY + 12) + 'px';
+        // ==================== NAVIGATION ====================
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                const tabId = tab.dataset.tab + 'Tab';
+                document.getElementById(tabId).classList.add('active');
+                if (tab.dataset.tab === 'history') renderHistory();
+                if (tab.dataset.tab === 'screenshots') renderGallery();
+                if (tab.dataset.tab === 'economy') renderSavedReports();
+            });
         });
-        el.addEventListener('mouseleave', () => {
-          tip.style.display = 'none';
+
+        // ==================== PARLIAMENT SVG ====================
+        function getUnassignedSeats() {
+            const assigned = state.parties.reduce((sum, p) => sum + p.seats, 0);
+            return Math.max(0, state.totalSeats - assigned);
+        }
+
+        function renderParliament() {
+            const svg = document.getElementById('parliamentSvg');
+            const total = state.totalSeats;
+            const parties = state.parties;
+            const unassigned = getUnassignedSeats();
+
+            // Determine rows based on total seats
+            let numRows;
+            if (total <= 50) numRows = 3;
+            else if (total <= 150) numRows = 5;
+            else if (total <= 350) numRows = 7;
+            else if (total <= 600) numRows = 9;
+            else numRows = 11;
+
+            const cx = 400;
+            const cy = 390;
+            const rMin = 55;
+            const rMax = 340;
+            const angleStart = Math.PI * 0.94; // slightly past left
+            const angleEnd = Math.PI * 0.06; // slightly past right (going clockwise)
+            const angleSpan = angleStart - angleEnd;
+
+            // Calculate rows
+            const rows = [];
+            for (let i = 0; i < numRows; i++) {
+                const t = numRows > 1 ? i / (numRows - 1) : 0.5;
+                const r = rMin + t * (rMax - rMin);
+                rows.push({ r, seatCapacity: Math.max(3, Math.round((r / rMax) * total * 1.3 / numRows)) });
+            }
+            const totalCapacity = rows.reduce((s, r) => s + r.seatCapacity, 0);
+            // Scale capacities to match total seats
+            rows.forEach(r => r.seatCount = Math.max(2, Math.round(r.seatCapacity / totalCapacity * total)));
+            // Adjust to match exactly
+            let diff = total - rows.reduce((s, r) => s + r.seatCount, 0);
+            for (let i = rows.length - 1; i >= 0 && diff !== 0; i--) {
+                const adj = diff > 0 ? 1 : -1;
+                if (rows[i].seatCount + adj >= 2) { rows[i].seatCount += adj;
+                    diff -= adj; }
+            }
+
+            // Build flat list of all seat positions with row info
+            let allSeats = [];
+            rows.forEach((row, rowIdx) => {
+                const n = row.seatCount;
+                for (let s = 0; s < n; s++) {
+                    const frac = n > 1 ? s / (n - 1) : 0.5;
+                    const angle = angleStart - frac * angleSpan;
+                    const x = cx + row.r * Math.cos(angle);
+                    const y = cy - row.r * Math.sin(angle);
+                    allSeats.push({ x, y, rowIdx, seatIdx: s, rowTotal: n, r: row.r, angle });
+                }
+            });
+
+            // Distribute seats among parties proportionally
+            const totalAssigned = parties.reduce((s, p) => s + p.seats, 0);
+            const seatsToDistribute = Math.min(total, totalAssigned + unassigned);
+            const effectiveTotal = Math.max(1, totalAssigned + Math.max(0, unassigned));
+
+            let seatAssignments = [];
+            let seatIdx = 0;
+            // Assign party seats
+            parties.forEach(party => {
+                const count = Math.min(party.seats, allSeats.length - seatIdx);
+                for (let i = 0; i < count && seatIdx < allSeats.length; i++) {
+                    seatAssignments.push({ ...allSeats[seatIdx], party, governing: party.governing });
+                    seatIdx++;
+                }
+            });
+            // Assign unassigned seats
+            while (seatIdx < allSeats.length) {
+                seatAssignments.push({ ...allSeats[seatIdx], party: null, governing: false });
+                seatIdx++;
+            }
+
+            // Build SVG
+            const seatRadius = total > 500 ? 3.2 : total > 250 ? 4 : 5;
+            let svgContent = '';
+
+            // Background gradient
+            svgContent += `
+            <defs>
+              <radialGradient id="floorGrad" cx="50%" cy="85%" r="60%">
+                <stop offset="0%" stop-color="#2a2a35"/>
+                <stop offset="100%" stop-color="#1a1a20"/>
+              </radialGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <rect width="800" height="420" fill="url(#floorGrad)" rx="8"/>
+            <ellipse cx="400" cy="390" rx="355" ry="355" fill="none" stroke="#2a2a38" stroke-width="1" stroke-dasharray="4,8"/>
+          `;
+
+            // Draw seat rows (background arcs)
+            rows.forEach(row => {
+                svgContent +=
+                    `<path d="M${cx+row.r*Math.cos(angleStart)},${cy-row.r*Math.sin(angleStart)} A${row.r},${row.r} 0 0,0 ${cx+row.r*Math.cos(angleEnd)},${cy-row.r*Math.sin(angleEnd)}" fill="none" stroke="#2a2a35" stroke-width="1.5"/>`;
+            });
+
+            // Draw center aisle lines
+            svgContent +=
+                `<line x1="${cx}" y1="${cy-rMin+10}" x2="${cx}" y2="${cy-rMax-10}" stroke="#3a3a45" stroke-width="2" stroke-dasharray="6,4"/>`;
+
+            // Draw speaker's dais
+            svgContent += `
+            <rect x="370" y="${cy-rMin+22}" width="60" height="18" rx="4" fill="#3a3040" stroke="#5a4a50" stroke-width="1.5"/>
+            <text x="400" y="${cy-rMin+35}" text-anchor="middle" fill="#a09080" font-size="8" font-family="serif">SPEAKER</text>
+          `;
+
+            // Draw seats
+            seatAssignments.forEach((seat, i) => {
+                const color = seat.party ? seat.party.color : '#3a3a40';
+                const name = seat.party ? seat.party.name : 'Unassigned';
+                const govClass = seat.governing ? ' government-seat' : '';
+                const glowFilter = seat.governing ? ' filter="url(#glow)"' : '';
+                svgContent +=
+                    `<circle cx="${seat.x.toFixed(1)}" cy="${seat.y.toFixed(1)}" r="${seatRadius}" fill="${color}" stroke="${seat.governing ? '#ffd866' : 'rgba(255,255,255,0.15)'}" stroke-width="${seat.governing ? 1.5 : 0.5}" class="seat-circle${govClass}"${glowFilter} data-party="${name}" data-governing="${seat.governing}"><title>${name}${seat.governing ? ' (Governing)' : ''}</title></circle>`;
+            });
+
+            // Legend at bottom
+            let legendX = 30;
+            const legendY = 30;
+            parties.forEach(p => {
+                svgContent +=
+                    `<circle cx="${legendX}" cy="${legendY}" r="6" fill="${p.color}" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/><text x="${legendX+10}" y="${legendY+4}" fill="#b0a89a" font-size="9" font-family="sans-serif">${p.name} (${p.seats})${p.governing ? ' ★' : ''}</text>`;
+                legendX += p.name.length * 5.5 + p.seats.toString().length * 5 + 50;
+                if (legendX > 750) { legendX = 30; /* would wrap in a more complex layout */ }
+            });
+            if (unassigned > 0) {
+                svgContent +=
+                    `<circle cx="${legendX}" cy="${legendY}" r="6" fill="#3a3a40" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/><text x="${legendX+10}" y="${legendY+4}" fill="#888" font-size="9" font-family="sans-serif">Unassigned (${unassigned})</text>`;
+            }
+
+            svg.innerHTML = svgContent;
+
+            // Update summary
+            document.getElementById('seatSummary').textContent =
+                `${state.totalSeats} total seats | ${unassigned} unassigned`;
+            document.getElementById('historyCount').textContent = state.history.length;
+        }
+
+        function renderPartyList() {
+            const container = document.getElementById('partyList');
+            const unassigned = getUnassignedSeats();
+            let html = '';
+            state.parties.forEach((party, idx) => {
+                html += `
+            <div class="party-chip${party.governing ? ' governing' : ''}" onclick="toggleGoverning(${idx})" title="Click to toggle governing status">
+              <span class="swatch" style="background:${party.color};"></span>
+              <span class="party-name">${party.name}</span>
+              <span class="seat-count">${party.seats}</span>
+              <button class="btn-sm" onclick="event.stopPropagation();adjustSeats(${idx},-1)" title="-1 seat">−</button>
+              <button class="btn-sm" onclick="event.stopPropagation();adjustSeats(${idx},1)" title="+1 seat">+</button>
+              <button class="btn-sm" style="background:#5a2a22;border-color:#8a3a2a;color:#faa;" onclick="event.stopPropagation();removeParty(${idx})" title="Remove party">×</button>
+            </div>`;
+            });
+            if (unassigned > 0) {
+                html +=
+                    `<span style="color:var(--text2);font-size:0.85em;padding:8px;">+ ${unassigned} unassigned seats</span>`;
+            }
+            container.innerHTML = html || '<span style="color:var(--text2);">No parties. Click "Add Party" to begin.</span>';
+        }
+
+        function adjustSeats(idx, delta) {
+            const party = state.parties[idx];
+            const newSeats = party.seats + delta;
+            if (newSeats < 0) return;
+            const otherSeats = state.parties.reduce((s, p, i) => s + (i === idx ? 0 : p.seats), 0);
+            if (newSeats + otherSeats > state.totalSeats && delta > 0) {
+                showToast('⚠️ Not enough unassigned seats! Increase total seats first.');
+                return;
+            }
+            party.seats = newSeats;
+            refreshParliament();
+        }
+
+        function toggleGoverning(idx) {
+            state.parties[idx].governing = !state.parties[idx].governing;
+            refreshParliament();
+        }
+
+        function removeParty(idx) {
+            if (state.parties.length <= 1) {
+                showToast('Need at least one party!');
+                return;
+            }
+            const name = state.parties[idx].name;
+            state.parties.splice(idx, 1);
+            showToast(`Removed "${name}"`);
+            refreshParliament();
+        }
+
+        function addParty() {
+            const name = prompt('Party name:', 'New Party');
+            if (!name || name.trim() === '') return;
+            const color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+            state.parties.push({ name: name.trim(), color, seats: 0, governing: false });
+            refreshParliament();
+            showToast(`Added "${name.trim()}"`);
+        }
+
+        function updateTotalSeats() {
+            const input = document.getElementById('totalSeats');
+            const newTotal = Math.max(5, Math.min(1000, parseInt(input.value) || 300));
+            state.totalSeats = newTotal;
+            input.value = newTotal;
+            // Trim party seats if they exceed new total
+            let totalAssigned = state.parties.reduce((s, p) => s + p.seats, 0);
+            while (totalAssigned > newTotal && state.parties.length > 0) {
+                // Reduce largest party
+                let maxIdx = 0;
+                state.parties.forEach((p, i) => { if (p.seats > state.parties[maxIdx].seats) maxIdx = i; });
+                const reduction = Math.min(state.parties[maxIdx].seats, totalAssigned - newTotal);
+                state.parties[maxIdx].seats -= reduction;
+                totalAssigned -= reduction;
+                if (state.parties[maxIdx].seats <= 0 && state.parties.length > 1) {
+                    state.parties.splice(maxIdx, 1);
+                }
+            }
+            refreshParliament();
+        }
+
+        function formGovernment() {
+            const governing = state.parties.filter(p => p.governing);
+            const govSeats = governing.reduce((s, p) => s + p.seats, 0);
+            if (governing.length === 0) {
+                showToast('⚠️ Select at least one governing party (click party chips to toggle).');
+                return;
+            }
+            if (govSeats < state.totalSeats / 2) {
+                showToast(
+                    `⚠️ Governing coalition has only ${govSeats} seats (need >${Math.floor(state.totalSeats/2)} for majority).`);
+            } else {
+                showToast(`✅ Government formed with ${governing.map(p=>p.name).join(', ')} (${govSeats} seats)`);
+            }
+            refreshParliament();
+        }
+
+        function saveToHistory() {
+            const entry = {
+                date: new Date().toISOString(),
+                label: prompt('Label for this government (e.g., "Disraeli Ministry 1874"):',
+                    `Government ${state.history.length + 1}`) || `Government ${state.history.length + 1}`,
+                totalSeats: state.totalSeats,
+                parties: JSON.parse(JSON.stringify(state.parties)),
+            };
+            state.history.unshift(entry);
+            if (state.history.length > 50) state.history = state.history.slice(0, 50);
+            saveState();
+            renderHistory();
+            document.getElementById('historyCount').textContent = state.history.length;
+            showToast('💾 Government saved to history!');
+        }
+
+        function resetParliament() {
+            if (confirm('Reset parliament to default? This cannot be undone.')) {
+                state.totalSeats = 300;
+                state.parties = JSON.parse(JSON.stringify(DEFAULT_PARTIES));
+                document.getElementById('totalSeats').value = 300;
+                refreshParliament();
+                showToast('Parliament reset to default.');
+            }
+        }
+
+        function refreshParliament() {
+            renderParliament();
+            renderPartyList();
+            saveState();
+        }
+
+        // ==================== HISTORY ====================
+        function renderHistory() {
+            const container = document.getElementById('historyTimeline');
+            if (state.history.length === 0) {
+                container.innerHTML =
+                    '<p style="color:var(--text2);">No saved governments yet. Go to the Parliament tab and save your current government!</p>';
+                return;
+            }
+            let html = '';
+            state.history.forEach((entry, idx) => {
+                const dateStr = new Date(entry.date).toLocaleDateString('en-GB', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const govParties = entry.parties.filter(p => p.governing);
+                const govNames = govParties.map(p => p.name).join(', ') || 'No governing party';
+                const totalSeats = entry.parties.reduce((s, p) => s + p.seats, 0);
+                html += `
+            <div class="timeline-entry" onclick="viewHistoryEntry(${idx})">
+              <div class="date">${dateStr}</div>
+              <div class="gov-name">${entry.label}</div>
+              <div style="color:var(--text2);font-size:0.85em;">Governing: ${govNames} | ${totalSeats} seats</div>
+              <div class="mini-parties">${entry.parties.map(p=>`<span class="mini-party-dot" style="background:${p.color};${p.governing?'box-shadow:0 0 5px gold;':''}" title="${p.name}: ${p.seats} seats${p.governing?' (Gov)':''}"></span>`).join('')}</div>
+            </div>`;
+            });
+            container.innerHTML = html;
+            document.getElementById('historyCount').textContent = state.history.length;
+        }
+
+        function viewHistoryEntry(idx) {
+            const entry = state.history[idx];
+            const dateStr = new Date(entry.date).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            const modal = document.getElementById('modalContent');
+            modal.innerHTML = `
+            <button class="close-btn" onclick="closeModalDirect()">✕</button>
+            <h3>📜 ${entry.label}</h3>
+            <p style="color:var(--text2);">Saved: ${dateStr}</p>
+            <p>Total Seats: <strong>${entry.totalSeats}</strong></p>
+            <h4>Parties:</h4>
+            <table style="width:100%;border-collapse:collapse;">
+              <tr style="color:var(--text2);"><th style="text-align:left;padding:6px;">Party</th><th style="text-align:right;padding:6px;">Seats</th><th style="text-align:center;padding:6px;">Status</th></tr>
+              ${entry.parties.map(p=>`
+                <tr style="border-bottom:1px solid var(--border);">
+                  <td style="padding:6px;"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${p.color};margin-right:6px;vertical-align:middle;"></span>${p.name}</td>
+                  <td style="text-align:right;padding:6px;">${p.seats}</td>
+                  <td style="text-align:center;padding:6px;">${p.governing?'🏛️ Governing':'Opposition'}</td>
+                </tr>`).join('')}
+            </table>
+            <div class="btn-row">
+              <button class="btn btn-primary" onclick="restoreFromHistory(${idx})">Restore This Parliament</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteHistoryEntry(${idx})">Delete Entry</button>
+            </div>
+          `;
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        function restoreFromHistory(idx) {
+            const entry = state.history[idx];
+            state.totalSeats = entry.totalSeats;
+            state.parties = JSON.parse(JSON.stringify(entry.parties));
+            document.getElementById('totalSeats').value = entry.totalSeats;
+            refreshParliament();
+            closeModalDirect();
+            document.querySelector('.nav-tab[data-tab="parliament"]').click();
+            showToast('✅ Parliament restored from history!');
+        }
+
+        function deleteHistoryEntry(idx) {
+            if (confirm('Delete this history entry?')) {
+                state.history.splice(idx, 1);
+                saveState();
+                renderHistory();
+                closeModalDirect();
+                showToast('History entry deleted.');
+            }
+        }
+
+        function clearHistory() {
+            if (confirm('Clear ALL government history? This cannot be undone.')) {
+                state.history = [];
+                saveState();
+                renderHistory();
+                document.getElementById('historyCount').textContent = '0';
+                showToast('History cleared.');
+            }
+        }
+
+        function exportHistory() {
+            const blob = new Blob([JSON.stringify(state.history, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'vic3_government_history.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📥 History exported as JSON!');
+        }
+
+        // ==================== ECONOMIC REPORT ====================
+        function generateReport() {
+            const country = document.getElementById('ecoCountry').value || 'Unknown';
+            const year = document.getElementById('ecoYear').value || '18--';
+            const gdp = parseFloat(document.getElementById('ecoGDP').value) || 0;
+            const growth = parseFloat(document.getElementById('ecoGrowth').value) || 0;
+            const gdppc = parseFloat(document.getElementById('ecoGDPpc').value) || 0;
+            const inflation = parseFloat(document.getElementById('ecoInflation').value) || 0;
+            const unemp = parseFloat(document.getElementById('ecoUnemp').value) || 0;
+            const revenue = parseFloat(document.getElementById('ecoRevenue').value) || 0;
+            const expend = parseFloat(document.getElementById('ecoExpend').value) || 0;
+            const debt = parseFloat(document.getElementById('ecoDebt').value) || 0;
+            const trade = parseFloat(document.getElementById('ecoTrade').value) || 0;
+            const gold = parseFloat(document.getElementById('ecoGold').value) || 0;
+            const sectorsRaw = document.getElementById('ecoSectors').value;
+            const notes = document.getElementById('ecoNotes').value || 'No additional notes provided.';
+
+            const balance = revenue - expend;
+            const debtToGDP = gdp > 0 ? (debt / gdp * 100).toFixed(1) : 'N/A';
+
+            // Parse sectors
+            const sectors = [];
+            sectorsRaw.split('\n').forEach(line => {
+                const parts = line.split(',');
+                if (parts.length >= 2) {
+                    const name = parts[0].trim();
+                    const val = parseFloat(parts[1].trim());
+                    if (name && !isNaN(val)) sectors.push({ name, value: val });
+                }
+            });
+
+            const reportHTML = `
+            <div class="report-paper">
+              <div class="report-header">
+                <div class="bank-name">Royal Economic Intelligence Service</div>
+                <div class="report-title">Annual Economic Report</div>
+                <div class="country-year">${country} — ${year}</div>
+              </div>
+
+              <div class="report-section">
+                <h3>Executive Summary</h3>
+                <p>${notes}</p>
+              </div>
+
+              <div class="report-section">
+                <h3>Key Macroeconomic Indicators</h3>
+                <div style="display:flex;flex-wrap:wrap;justify-content:center;text-align:center;">
+                  <div class="metric-big"><div class="value">£${(gdp/1000).toFixed(1)}B</div><div class="label">Gross Domestic Product</div></div>
+                  <div class="metric-big"><div class="value" style="color:${growth>=0?'#3a7a3a':'#8a3a3a'};">${growth>=0?'+':''}${growth.toFixed(1)}%</div><div class="label">GDP Growth</div></div>
+                  <div class="metric-big"><div class="value">£${gdppc.toFixed(0)}</div><div class="label">GDP per Capita</div></div>
+                  <div class="metric-big"><div class="value">${inflation.toFixed(1)}%</div><div class="label">Inflation Rate</div></div>
+                  <div class="metric-big"><div class="value">${unemp.toFixed(1)}%</div><div class="label">Unemployment</div></div>
+                </div>
+              </div>
+
+              <div class="report-section">
+                <h3>Fiscal Position</h3>
+                <table class="report-table">
+                  <tr><td>Government Revenue</td><td class="num">£${revenue.toLocaleString()}M</td></tr>
+                  <tr><td>Government Expenditure</td><td class="num">£${expend.toLocaleString()}M</td></tr>
+                  <tr class="highlight-row"><td><strong>Budget Balance</strong></td><td class="num" style="color:${balance>=0?'#3a7a3a':'#8a3a3a';}"><strong>${balance>=0?'+':''}£${balance.toLocaleString()}M</strong></td></tr>
+                  <tr><td>National Debt</td><td class="num">£${debt.toLocaleString()}M</td></tr>
+                  <tr><td>Debt-to-GDP Ratio</td><td class="num">${debtToGDP}%</td></tr>
+                  <tr><td>Gold & Foreign Reserves</td><td class="num">£${gold.toLocaleString()}M</td></tr>
+                </table>
+              </div>
+
+              <div class="report-section">
+                <h3>Trade & Balance of Payments</h3>
+                <table class="report-table">
+                  <tr><td>Trade Balance</td><td class="num" style="color:${trade>=0?'#3a7a3a':'#8a3a3a';}">${trade>=0?'+':''}£${trade.toLocaleString()}M</td></tr>
+                  <tr><td>Export-to-GDP Ratio (est.)</td><td class="num">${gdp>0?(Math.abs(trade)*0.7/gdp*100).toFixed(1):'N/A'}%</td></tr>
+                </table>
+              </div>
+
+              ${sectors.length > 0 ? `
+              <div class="report-section">
+                <h3>Sectoral Breakdown</h3>
+                <table class="report-table">
+                  <tr><th>Sector</th><th class="num">Output (£M)</th><th class="num">Share of GDP</th></tr>
+                  ${sectors.map(s=>`
+                    <tr><td>${s.name}</td><td class="num">£${s.value.toLocaleString()}</td><td class="num">${gdp>0?(s.value/gdp*100).toFixed(1):'N/A'}%</td></tr>
+                  `).join('')}
+                </table>
+              </div>` : ''}
+
+              <div class="report-section">
+                <h3>Outlook</h3>
+                <p>Based on current trends, the ${country} economy is projected to continue its trajectory. Key risks include global commodity price fluctuations, geopolitical tensions, and domestic policy changes. The fiscal position requires careful management to ensure long-term sustainability.</p>
+              </div>
+
+              <div class="report-footer">
+                This report is generated for informational purposes. Data sourced from official government statistics and independent analysis.<br>
+                Report generated on ${new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'})}.
+              </div>
+            </div>
+          `;
+
+            document.getElementById('reportContent').innerHTML = reportHTML;
+            document.getElementById('reportContainer').style.display = 'block';
+            document.getElementById('reportContainer').scrollIntoView({ behavior: 'smooth' });
+            showToast('📄 Economic report generated!');
+        }
+
+        function printReport() {
+            const reportContent = document.getElementById('reportContent').innerHTML;
+            if (!reportContent || reportContent.trim() === '') {
+                showToast('⚠️ Generate a report first!');
+                return;
+            }
+            window.print();
+        }
+
+        function saveEconomicReport() {
+            const reportContent = document.getElementById('reportContent').innerHTML;
+            if (!reportContent || reportContent.trim() === '') {
+                showToast('⚠️ Generate a report first!');
+                return;
+            }
+            const country = document.getElementById('ecoCountry').value || 'Unknown';
+            const year = document.getElementById('ecoYear').value || '18--';
+            const entry = {
+                date: new Date().toISOString(),
+                country,
+                year,
+                html: reportContent,
+            };
+            state.savedReports.unshift(entry);
+            if (state.savedReports.length > 20) state.savedReports = state.savedReports.slice(0, 20);
+            saveState();
+            renderSavedReports();
+            showToast('💾 Report saved!');
+        }
+
+        function renderSavedReports() {
+            const container = document.getElementById('savedReportsList');
+            if (state.savedReports.length === 0) {
+                container.innerHTML = '<p style="color:var(--text2);">No saved reports yet.</p>';
+                return;
+            }
+            let html = '';
+            state.savedReports.forEach((r, idx) => {
+                const dateStr = new Date(r.date).toLocaleDateString('en-GB', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                html += `
+            <div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid var(--border);flex-wrap:wrap;">
+              <span style="font-weight:bold;">${r.country} — ${r.year}</span>
+              <span style="color:var(--text2);font-size:0.85em;">${dateStr}</span>
+              <button class="btn btn-sm btn-secondary" onclick="loadSavedReport(${idx})">View</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteSavedReport(${idx})">Delete</button>
+            </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function loadSavedReport(idx) {
+            const r = state.savedReports[idx];
+            document.getElementById('reportContent').innerHTML = r.html;
+            document.getElementById('reportContainer').style.display = 'block';
+            document.getElementById('reportContainer').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deleteSavedReport(idx) {
+            if (confirm('Delete this saved report?')) {
+                state.savedReports.splice(idx, 1);
+                saveState();
+                renderSavedReports();
+                showToast('Report deleted.');
+            }
+        }
+
+        // ==================== SCREENSHOTS ====================
+        function handleFileUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+            Array.from(files).forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const dataUrl = e.target.result;
+                    // Compress large images
+                    if (dataUrl.length > 500000) {
+                        compressImage(dataUrl, 0.5, (compressed) => {
+                            addScreenshot(file.name, compressed);
+                        });
+                    } else {
+                        addScreenshot(file.name, dataUrl);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+            document.getElementById('fileInput').value = '';
+        }
+
+        function compressImage(dataUrl, quality, callback) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width * quality;
+                canvas.height = img.height * quality;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                callback(canvas.toDataURL('image/jpeg', 0.7));
+            };
+            img.src = dataUrl;
+        }
+
+        function addScreenshot(name, dataUrl) {
+            state.screenshots.unshift({
+                date: new Date().toISOString(),
+                name,
+                dataUrl,
+            });
+            if (state.screenshots.length > 30) state.screenshots = state.screenshots.slice(0, 30);
+            saveState();
+            renderGallery();
+            showToast('📸 Screenshot added!');
+        }
+
+        function renderGallery() {
+            const grid = document.getElementById('galleryGrid');
+            if (state.screenshots.length === 0) {
+                grid.innerHTML =
+                    '<p style="color:var(--text2);grid-column:1/-1;">No screenshots yet. Upload some Victoria 3 screenshots!</p>';
+                return;
+            }
+            grid.innerHTML = state.screenshots.map((s, idx) => `
+            <div class="gallery-item" onclick="viewScreenshot(${idx})">
+              <img src="${s.dataUrl}" alt="${s.name}" loading="lazy">
+              <div class="overlay">${s.name}<br><small>${new Date(s.date).toLocaleDateString()}</small></div>
+            </div>
+          `).join('');
+        }
+
+        function viewScreenshot(idx) {
+            const s = state.screenshots[idx];
+            const modal = document.getElementById('modalContent');
+            modal.innerHTML = `
+            <button class="close-btn" onclick="closeModalDirect()">✕</button>
+            <h3>📸 ${s.name}</h3>
+            <p style="color:var(--text2);">${new Date(s.date).toLocaleString()}</p>
+            <img src="${s.dataUrl}" style="width:100%;border-radius:4px;margin:10px 0;" alt="${s.name}">
+            <div class="btn-row">
+              <button class="btn btn-secondary" onclick="downloadScreenshot(${idx})">Download</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteScreenshot(${idx})">Delete</button>
+            </div>
+          `;
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        function downloadScreenshot(idx) {
+            const s = state.screenshots[idx];
+            const a = document.createElement('a');
+            a.href = s.dataUrl;
+            a.download = s.name || 'vic3_screenshot.png';
+            a.click();
+        }
+
+        function deleteScreenshot(idx) {
+            if (confirm('Delete this screenshot?')) {
+                state.screenshots.splice(idx, 1);
+                saveState();
+                renderGallery();
+                closeModalDirect();
+                showToast('Screenshot deleted.');
+            }
+        }
+
+        function clearScreenshots() {
+            if (confirm('Delete ALL screenshots? This cannot be undone.')) {
+                state.screenshots = [];
+                saveState();
+                renderGallery();
+                showToast('All screenshots cleared.');
+            }
+        }
+
+        // ==================== MODAL ====================
+        function closeModal(event) {
+            if (event.target === document.getElementById('modalOverlay')) {
+                document.getElementById('modalOverlay').style.display = 'none';
+            }
+        }
+
+        function closeModalDirect() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        // ==================== DRAG & DROP ====================
+        const uploadZone = document.getElementById('uploadZone');
+        if (uploadZone) {
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('drag-over');
+            });
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('drag-over');
+            });
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('drag-over');
+                const files = e.dataTransfer.files;
+                if (files && files.length > 0) {
+                    const dt = new DataTransfer();
+                    Array.from(files).forEach(f => dt.items.add(f));
+                    document.getElementById('fileInput').files = dt.files;
+                    handleFileUpload({ target: { files: dt.files } });
+                }
+            });
+        }
+
+        // ==================== KEYBOARD SHORTCUTS ====================
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModalDirect();
+            }
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveState();
+                showToast('💾 State saved!');
+            }
+            if (e.ctrlKey && e.key === 'p' && document.getElementById('economyTab').classList.contains(
+                    'active')) {
+                // Let native print work for reports
+            }
         });
-      });
-    }
 
-function renderRecentBills() {
-      const root = document.getElementById("recentBills");
-      root.innerHTML = state.bills.slice(0, 8).map(bill => `
-        <div class="bill-item">
-          <div class="title-row"><strong>${escapeXml(bill.title)}</strong><span class="pill ${bill.status === 'Passed' ? 'pass' : 'fail'}">${escapeXml(bill.status)}</span></div>
-          <div class="mini" style="margin-top:6px;">${escapeXml(bill.date)} · ${escapeXml(bill.house)}</div>
-          <div style="margin-top:6px;">${bill.yes}-${bill.no}${typeof bill.abstain === 'number' ? ` / abst. ${bill.abstain}` : ''}</div>
-        </div>`).join("");
-    }
+        // ==================== INITIALIZATION ====================
+        function init() {
+            loadState();
+            document.getElementById('totalSeats').value = state.totalSeats;
+            refreshParliament();
+            renderHistory();
+            renderGallery();
+            renderSavedReports();
+            document.getElementById('historyCount').textContent = state.history.length;
+            console.log('🏛️ Victoria 3 Parliament & Economic Report Tool initialized.');
+            console.log('📊 Features: Parliament hemicycle | Government history | Economic reports | Screenshot gallery');
+            console.log('💡 Tip: Click party chips to toggle governing status. Save governments to build history.');
+        }
 
-    function syncInputs() {
-      const set = (id, val) => {
-        const el = document.getElementById(id);
-        if (el && document.activeElement !== el && el.value !== String(val ?? "")) el.value = val ?? "";
-      };
-      set("parliamentName", state.parliamentName);
-      set("crest", state.crest);
-      set("inputMode", state.inputMode);
-      set("roundingMethod", state.roundingMethod);
-      set("governmentLabel", state.governmentLabel);
-      set("oppositionLabel", state.oppositionLabel);
-      set("crossbenchLabel", state.crossbenchLabel);
-      set("whipMode", state.whipMode);
-      set("billType", state.billType);
-      set("majorityRule", state.majorityRule);
-      set("ministryName", state.ministryName);
-      set("primeMinister", state.primeMinister);
-      set("presidentName", state.presidentName);
-      set("governmentType", state.governmentType);
-      set("upperHouseSystem", state.upperHouseSystem);
-      set("budgetMilitary", (state.budgetPlan || {}).military ?? 0);
-      set("budgetWelfare", (state.budgetPlan || {}).welfare ?? 0);
-      set("budgetInfrastructure", (state.budgetPlan || {}).infrastructure ?? 0);
-      set("budgetChurch", (state.budgetPlan || {}).church ?? 0);
-      set("budgetTariffs", (state.budgetPlan || {}).tariffs ?? 0);
-      set("budgetEducation", (state.budgetPlan || {}).education ?? 0);
-      set("budgetDebt", (state.budgetPlan || {}).debt ?? 0);
-      set("budgetColonial", (state.budgetPlan || {}).colonial ?? 0);
-      set("budgetAgriculture", (state.budgetPlan || {}).agriculture ?? 0);
-      set("houseType", state.houseType);
-      set("upperHouseType", state.upperHouseType);
-      set("lowerHouseName", state.lowerHouse.houseName);
-      set("lowerHouseSeats", state.lowerHouse.totalSeats);
-      set("upperHouseName", state.upperHouse.houseName);
-      set("upperHouseSeats", state.upperHouse.totalSeats);
-      set("sortStrength", state.sortStrength);
-      document.getElementById("sortStrengthValue").textContent = state.sortStrength;
-      document.getElementById("thresholdEnabled").checked = state.thresholdConfig.enabled;
-      set("thresholdType", state.thresholdConfig.thresholdType);
-      set("thresholdValue", state.thresholdConfig.thresholdValue);
-      document.getElementById("thresholdExemptLargest").checked = state.thresholdConfig.exemptLargest;
-      document.getElementById("upperEnabled").checked = state.upperEnabled;
-      document.getElementById("upperSeparate").checked = state.upperSeparate;
-      document.getElementById("showSpeaker").checked = state.showSpeaker;
-      if (document.activeElement !== document.getElementById("rawInput")) document.getElementById("rawInput").value = state.rawInput;
-      if (document.activeElement !== document.getElementById("upperRawInput")) document.getElementById("upperRawInput").value = state.upperRawInput || "";
-      document.getElementById("thresholdBlock").classList.toggle("hidden", !state.thresholdConfig.enabled);
-      document.getElementById("upperBlock").classList.toggle("hidden", !state.upperEnabled);
-      document.getElementById("upperInputWrap").classList.toggle("hidden", !state.upperSeparate);
-      document.getElementById("upperPanel").classList.toggle("hidden", !state.upperEnabled);
-      document.getElementById("presentationUpperWrap").classList.toggle("hidden", !state.upperEnabled);
-      document.getElementById("upperInputWrap").classList.toggle("hidden", !(state.upperEnabled && state.upperSeparate));
-      document.getElementById("billDate").value = state.billDraftDate || state.defaultDate || "1836-01-01";
-      document.getElementById("timelineDate").value = state.timelineDraftDate || state.defaultDate || "1836-01-01";
-      if (document.activeElement !== document.getElementById("billHouse") && !document.getElementById("billHouse").value) document.getElementById("billHouse").value = state.lowerHouse.houseName;
-    }
-
-    function render() {
-      state.rawInput = document.getElementById("rawInput") ? document.getElementById("rawInput").value : state.rawInput;
-      state.upperRawInput = document.getElementById("upperRawInput") ? document.getElementById("upperRawInput").value : state.upperRawInput;
-      persist();
-      syncInputs();
-      const d = getDerived();
-
-      document.getElementById("statSeats").textContent = state.lowerHouse.totalSeats;
-      document.getElementById("statParties").textContent = d.displayParties.length;
-      document.getElementById("statCoalitions").textContent = `${d.coalitions.length} possible coalitions`;
-      document.getElementById("statMajority").textContent = d.lowerMajority;
-      document.getElementById("lowerLegendTitle").textContent = `${state.lowerHouse.houseName}`;
-      document.getElementById("upperLegendTitle").textContent = `${state.upperHouse.houseName}`;
-
-      const chamberArgs = {
-        title: state.parliamentName,
-        crest: state.crest,
-        governmentLabel: state.governmentLabel,
-        oppositionLabel: state.oppositionLabel,
-        crossbenchLabel: state.crossbenchLabel,
-        governmentLeaderName: d.governmentLeader?.name,
-        oppositionLeaderName: d.oppositionLeader?.name,
-        governmentPartners: d.governmentPartners,
-        oppositionPartners: d.oppositionPartners,
-        stoolDotColor: d.governmentLeader?.color,
-      };
-
-      document.getElementById("lowerChamber").innerHTML = svgChamber({
-        ...chamberArgs,
-        subtitle: `${state.lowerHouse.houseName} · ${state.roundingMethod}`,
-        assignments: d.displayParties,
-        chamberType: state.houseType,
-        totalSeats: state.lowerHouse.totalSeats,
-        maj: d.lowerMajority,
-      });
-
-      document.getElementById("upperChamber").innerHTML = svgChamber({
-        ...chamberArgs,
-        subtitle: `${state.upperHouse.houseName} · ${state.roundingMethod}${state.upperSeparate ? " · separate input" : ""}`,
-        assignments: d.displayUpperParties,
-        chamberType: state.upperHouseType,
-        totalSeats: state.upperHouse.totalSeats,
-        maj: d.upperMajority,
-      });
-
-      document.getElementById("presentationLower").innerHTML = svgChamber({
-        ...chamberArgs,
-        subtitle: `${state.lowerHouse.houseName} · presentation view`,
-        assignments: d.displayParties,
-        chamberType: state.houseType,
-        totalSeats: state.lowerHouse.totalSeats,
-        maj: d.lowerMajority,
-        large: true,
-      });
-
-      document.getElementById("presentationUpper").innerHTML = svgChamber({
-        ...chamberArgs,
-        subtitle: `${state.upperHouse.houseName} · presentation view${state.upperSeparate ? " · separate input" : ""}`,
-        assignments: d.displayUpperParties,
-        chamberType: state.upperHouseType,
-        totalSeats: state.upperHouse.totalSeats,
-        maj: d.upperMajority,
-        large: true,
-      });
-
-      renderLegend(document.getElementById("lowerLegend"), d.displayParties);
-      renderLegend(document.getElementById("upperLegend"), d.displayUpperParties);
-      renderLegend(document.getElementById("presentationLegend"), d.displayParties);
-      renderPartyEditor(d.displayParties);
-      renderCoalitionZones(d.displayParties);
-      renderSupportAgreements(d.displayParties);
-      renderLeaderSelects(d.displayParties);
-      renderCoalitions(d.coalitions);
-      renderBudgetForecast(d.displayParties);
-      renderPendingBills();
-      renderVoteVisual();
-      renderTimeline();
-      renderHistory();
-      renderBills();
-      renderRecentBills();
-      setupSeatTooltips();
-    }
-
-    bindControls();
-    render();
-  </script>
+        init();
+    </script>
 </body>
 </html>
