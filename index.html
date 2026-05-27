@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Victoria 3 - Parliament & Economic Report Tool</title>
+    <title>Victoria 3 – Parliament & Economic Report Tool</title>
     <style>
         :root {
             --bg: #1a1a1f;
@@ -14,13 +14,18 @@
             --gold: #c9a84c;
             --gold-dim: #8a7030;
             --red: #b84c3b;
-            --green: #5a8a6a;
             --border: #3a3a42;
             --font-heading: 'Georgia', 'Times New Roman', serif;
             --font-body: 'Segoe UI', system-ui, sans-serif;
             --radius: 8px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         body {
             background: var(--bg);
             color: var(--text);
@@ -36,7 +41,7 @@
             align-items: center;
             gap: 20px;
             flex-wrap: wrap;
-            box-shadow: 0 2px 16px rgba(0,0,0,0.5);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -47,7 +52,7 @@
             color: var(--gold);
             letter-spacing: 1px;
             white-space: nowrap;
-            text-shadow: 0 0 20px rgba(201,168,76,0.3);
+            text-shadow: 0 0 20px rgba(201, 168, 76, 0.3);
         }
         .header .logo span {
             color: #d4b86a;
@@ -56,7 +61,12 @@
             letter-spacing: 3px;
             text-transform: uppercase;
         }
-        .nav-tabs { display: flex; gap: 2px; flex-wrap: wrap; margin-left: auto; }
+        .nav-tabs {
+            display: flex;
+            gap: 2px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
         .nav-tab {
             padding: 10px 18px;
             background: var(--surface);
@@ -67,16 +77,19 @@
             font-size: 0.9em;
             transition: all 0.25s;
             border-radius: var(--radius) var(--radius) 0 0;
-            position: relative;
             white-space: nowrap;
         }
-        .nav-tab:hover { color: var(--gold); background: #2a2a32; border-color: var(--gold-dim); }
+        .nav-tab:hover {
+            color: var(--gold);
+            background: #2a2a32;
+            border-color: var(--gold-dim);
+        }
         .nav-tab.active {
             background: var(--surface2);
             color: var(--gold);
             border-color: var(--gold) var(--gold) transparent var(--gold);
             font-weight: bold;
-            box-shadow: 0 -2px 12px rgba(201,168,76,0.15);
+            box-shadow: 0 -2px 12px rgba(201, 168, 76, 0.15);
         }
         .nav-tab .badge {
             display: inline-block;
@@ -86,19 +99,36 @@
             padding: 1px 7px;
             font-size: 0.7em;
             margin-left: 4px;
-            font-family: var(--font-body);
         }
-        .main-container { max-width: 1300px; margin: 0 auto; padding: 20px; }
-        .tab-content { display: none; animation: fadeIn 0.35s ease; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .main-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.35s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
         .card {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+            box-shadow: var(--shadow);
         }
         .card h2 {
             font-family: var(--font-heading);
@@ -109,18 +139,32 @@
             padding-bottom: 10px;
             letter-spacing: 0.5px;
         }
-        .card h3 { font-family: var(--font-heading); color: #c9b878; font-size: 1.05em; margin: 12px 0 8px; }
-        .parliament-container {
-            background: #1a1a1f;
+        .card h3 {
+            font-family: var(--font-heading);
+            color: #c9b878;
+            font-size: 1.05em;
+            margin: 12px 0 8px;
+        }
+        .chamber-wrapper {
+            background: #0d0d12;
             border-radius: 12px;
             border: 1px solid var(--border);
             overflow: hidden;
             max-width: 1000px;
             margin: 0 auto;
-            box-shadow: inset 0 0 80px rgba(0,0,0,0.5);
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.6);
         }
-        .parliament-container svg { width: 100%; height: auto; display: block; }
-        .party-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+        .chamber-wrapper svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .party-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
         .party-chip {
             display: flex;
             align-items: center;
@@ -134,11 +178,27 @@
             font-size: 0.9em;
             user-select: none;
         }
-        .party-chip:hover { border-color: var(--gold-dim); }
-        .party-chip.governing { border-color: var(--gold); box-shadow: 0 0 10px rgba(201,168,76,0.3); }
-        .party-chip .swatch { width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.2); }
-        .party-chip .seat-count { font-weight: bold; color: #fff; }
-        .party-chip .party-name { color: var(--text2); }
+        .party-chip:hover {
+            border-color: var(--gold-dim);
+        }
+        .party-chip.governing {
+            border-color: var(--gold);
+            box-shadow: 0 0 10px rgba(201, 168, 76, 0.3);
+        }
+        .party-chip .swatch {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .party-chip .seat-count {
+            font-weight: bold;
+            color: #fff;
+        }
+        .party-chip .party-name {
+            color: var(--text2);
+        }
         .btn {
             padding: 10px 20px;
             border-radius: 20px;
@@ -154,13 +214,37 @@
             background: var(--surface2);
             color: var(--text);
         }
-        .btn-primary { background: var(--gold-dim); color: #fff; border-color: var(--gold); }
-        .btn-primary:hover { background: var(--gold); box-shadow: 0 0 16px rgba(201,168,76,0.3); }
-        .btn-danger { background: #5a2a22; color: #faa; border-color: #8a3a2a; }
-        .btn-danger:hover { background: #7a3028; }
-        .btn-sm { padding: 5px 12px; font-size: 0.8em; border-radius: 14px; }
-        .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
-        input, select, textarea {
+        .btn-primary {
+            background: var(--gold-dim);
+            color: #fff;
+            border-color: var(--gold);
+        }
+        .btn-primary:hover {
+            background: var(--gold);
+            box-shadow: 0 0 16px rgba(201, 168, 76, 0.3);
+        }
+        .btn-danger {
+            background: #5a2a22;
+            color: #faa;
+            border-color: #8a3a2a;
+        }
+        .btn-danger:hover {
+            background: #7a3028;
+        }
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 0.8em;
+            border-radius: 14px;
+        }
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        input,
+        select,
+        textarea {
             background: var(--bg);
             border: 1px solid var(--border);
             color: var(--text);
@@ -169,38 +253,194 @@
             font-family: var(--font-body);
             font-size: 0.9em;
         }
-        label { font-size: 0.85em; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; }
-        /* Timeline */
-        .timeline { position: relative; padding-left: 30px; }
-        .timeline::before { content:''; position:absolute; left:10px; top:0; bottom:0; width:2px; background:var(--gold-dim); }
-        .timeline-entry { position:relative; margin-bottom:20px; padding:14px 18px; background:var(--surface2); border-radius:var(--radius); border:1px solid var(--border); cursor:pointer; }
-        .timeline-entry:hover { border-color: var(--gold-dim); }
-        .timeline-entry::before { content:''; position:absolute; left:-24px; top:18px; width:10px; height:10px; border-radius:50%; background:var(--gold); border:2px solid var(--surface2); }
-        /* Report */
-        .report-paper {
-            background: #faf8f2; color: #2a2418; padding: 40px 36px; border-radius: 4px;
-            font-family: 'Georgia', serif; max-width: 900px; margin: 0 auto;
-            box-shadow: 0 4px 32px rgba(0,0,0,0.5); border: 1px solid #d0c8b0;
+        label {
+            font-size: 0.85em;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .report-header { text-align: center; border-bottom: 2px solid #c9a84c; padding-bottom: 16px; margin-bottom: 24px; }
-        .report-header .bank-name { font-size: 0.85em; text-transform: uppercase; letter-spacing: 3px; color: #6b5c3e; }
-        .report-header .report-title { font-size: 1.8em; color: #2a2418; margin: 6px 0; letter-spacing: 1px; }
-        .report-header .country-year { font-size: 1.3em; color: #8a7030; font-style: italic; }
-        .report-section { margin: 20px 0; }
-        .report-section h3 { color: #4a3820; border-bottom: 1px solid #d0c8b0; padding-bottom: 4px; }
-        .report-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-        .report-table th, .report-table td { padding: 8px 12px; border-bottom: 1px solid #e0d8c8; text-align: left; }
-        .report-table th { background: #f0ece0; color: #4a3820; font-weight: bold; text-transform: uppercase; font-size: 0.8em; }
-        .report-table .num { text-align: right; font-family: 'Courier New', monospace; }
-        .report-footer { border-top: 1px solid #d0c8b0; margin-top: 30px; padding-top: 12px; font-size: 0.75em; color: #8a8070; text-align: center; }
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-        .gallery-item { border-radius: 8px; overflow: hidden; border: 2px solid var(--border); cursor: pointer; aspect-ratio: 16/10; }
-        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
-        .upload-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; }
-        .upload-zone:hover { border-color: var(--gold); }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: center; justify-content: center; }
-        .modal { background: var(--surface2); border: 1px solid var(--gold-dim); border-radius: 8px; padding: 24px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
-        .toast { position: fixed; bottom: 30px; right: 30px; background: #2a2a32; border: 1px solid var(--gold); color: var(--gold); padding: 12px 20px; border-radius: 20px; z-index: 300; }
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--gold-dim);
+        }
+        .timeline-entry {
+            position: relative;
+            margin-bottom: 20px;
+            padding: 14px 18px;
+            background: var(--surface2);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .timeline-entry:hover {
+            border-color: var(--gold-dim);
+        }
+        .timeline-entry::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 18px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--gold);
+            border: 2px solid var(--surface2);
+        }
+        .report-paper {
+            background: #faf8f2;
+            color: #2a2418;
+            padding: 40px 36px;
+            border-radius: 4px;
+            font-family: 'Georgia', serif;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid #d0c8b0;
+        }
+        .report-header {
+            text-align: center;
+            border-bottom: 2px solid #c9a84c;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+        .report-header .bank-name {
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #6b5c3e;
+        }
+        .report-header .report-title {
+            font-size: 1.8em;
+            color: #2a2418;
+            margin: 6px 0;
+            letter-spacing: 1px;
+        }
+        .report-header .country-year {
+            font-size: 1.3em;
+            color: #8a7030;
+            font-style: italic;
+        }
+        .report-section {
+            margin: 20px 0;
+        }
+        .report-section h3 {
+            color: #4a3820;
+            border-bottom: 1px solid #d0c8b0;
+            padding-bottom: 4px;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+        }
+        .report-table th,
+        .report-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e0d8c8;
+            text-align: left;
+        }
+        .report-table th {
+            background: #f0ece0;
+            color: #4a3820;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8em;
+        }
+        .report-table .num {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+        .report-footer {
+            border-top: 1px solid #d0c8b0;
+            margin-top: 30px;
+            padding-top: 12px;
+            font-size: 0.75em;
+            color: #8a8070;
+            text-align: center;
+        }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .gallery-item {
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            aspect-ratio: 16/10;
+        }
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .upload-zone:hover {
+            border-color: var(--gold);
+        }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal {
+            background: var(--surface2);
+            border: 1px solid var(--gold-dim);
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #2a2a32;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 12px 20px;
+            border-radius: 20px;
+            z-index: 300;
+            animation: slideUp 0.3s ease, fadeOut 0.5s ease 2.5s forwards;
+        }
+        @keyframes slideUp {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
     </style>
 </head>
 <body>
@@ -226,8 +466,8 @@
                     <span style="color:var(--text2);" id="seatSummary">169 seats</span>
                     <button class="btn btn-sm" onclick="highlightParty(null)" style="margin-left:auto;">✨ Clear Highlight</button>
                 </div>
-                <div class="parliament-container">
-                    <svg id="parliamentSvg" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg"></svg>
+                <div class="chamber-wrapper">
+                    <svg id="parliamentSvg" viewBox="0 0 1000 580" xmlns="http://www.w3.org/2000/svg"></svg>
                 </div>
             </div>
             <div class="card">
@@ -239,14 +479,19 @@
                     <button class="btn" onclick="saveToHistory()">💾 Save to History</button>
                     <button class="btn btn-danger btn-sm" onclick="resetParliament()">Reset All</button>
                 </div>
-                <p style="font-size:0.8em;color:var(--text2);margin-top:8px;">💡 Click a party chip to toggle governing. Click 🔍 to highlight only that party's MPs.</p>
             </div>
         </div>
 
         <!-- History Tab -->
         <div class="tab-content" id="historyTab">
-            <div class="card"><h2>📜 Government History</h2><div class="timeline" id="historyTimeline"></div>
-            <div class="btn-row"><button class="btn btn-danger btn-sm" onclick="clearHistory()">Clear</button><button class="btn btn-sm" onclick="exportHistory()">Export JSON</button></div></div>
+            <div class="card">
+                <h2>📜 Government History</h2>
+                <div class="timeline" id="historyTimeline"></div>
+                <div class="btn-row">
+                    <button class="btn btn-danger btn-sm" onclick="clearHistory()">Clear</button>
+                    <button class="btn btn-sm" onclick="exportHistory()">Export JSON</button>
+                </div>
+            </div>
         </div>
 
         <!-- Economy Tab -->
@@ -296,124 +541,185 @@
 
     <script>
         (function() {
-            // Storage
-            const canStore = (()=>{ try{localStorage.setItem('t','t'); localStorage.removeItem('t'); return true; }catch(e){return false;} })();
-            const load = ()=>{ if(!canStore) return null; try{ return JSON.parse(localStorage.getItem('vic3_parliament_tool')); }catch(e){return null;} };
-            const save = (d)=>{ if(!canStore) return; try{ localStorage.setItem('vic3_parliament_tool', JSON.stringify(d)); }catch(e){} };
+            const canStore = (() => { try { localStorage.setItem('t', 't');
+                    localStorage.removeItem('t'); return true; } catch (e) { return false; } })();
+            const load = () => { if (!canStore) return null; try { return JSON.parse(localStorage.getItem(
+                    'vic3_parliament_tool')); } catch (e) { return null; } };
+            const save = (d) => { if (!canStore) return; try { localStorage.setItem('vic3_parliament_tool', JSON.stringify(
+                    d)); } catch (e) {} };
 
             const DEFAULT = [
-                { name:'Conservative', color:'#3a6ba5', seats:35, governing:true },
-                { name:'Liberal', color:'#e8a830', seats:54, governing:false },
-                { name:'Labour', color:'#c74440', seats:42, governing:false },
-                { name:'Irish Parl.', color:'#5a9a5a', seats:28, governing:false },
-                { name:'Independent', color:'#888888', seats:10, governing:false }
+                { name: 'Conservative', color: '#3a6ba5', seats: 35, governing: true },
+                { name: 'Liberal', color: '#e8a830', seats: 54, governing: false },
+                { name: 'Labour', color: '#c74440', seats: 42, governing: false },
+                { name: 'Irish Parl.', color: '#5a9a5a', seats: 28, governing: false },
+                { name: 'Independent', color: '#888888', seats: 10, governing: false }
             ];
 
-            let state = { totalSeats:169, parties:JSON.parse(JSON.stringify(DEFAULT)), history:[], screenshots:[], savedReports:[] };
+            let state = { totalSeats: 169, parties: JSON.parse(JSON.stringify(DEFAULT)), history: [],
+                screenshots: [], savedReports: [] };
             const stored = load();
-            if(stored) { state.totalSeats=stored.totalSeats||169; state.parties=stored.parties||JSON.parse(JSON.stringify(DEFAULT)); state.history=stored.history||[]; state.screenshots=stored.screenshots||[]; state.savedReports=stored.savedReports||[]; }
+            if (stored) { state.totalSeats = stored.totalSeats || 169;
+                state.parties = stored.parties || JSON.parse(JSON.stringify(DEFAULT));
+                state.history = stored.history || [];
+                state.screenshots = stored.screenshots || [];
+                state.savedReports = stored.savedReports || []; }
 
-            function persist() { save({totalSeats:state.totalSeats, parties:state.parties, history:state.history.slice(-50), screenshots:state.screenshots.slice(-30), savedReports:state.savedReports.slice(-20)}); }
-            function toast(msg) { const c=document.getElementById('toastContainer'); const t=document.createElement('div'); t.className='toast'; t.textContent=msg; c.appendChild(t); setTimeout(()=>t.remove(),3000); }
+            function persist() { save({ totalSeats: state.totalSeats, parties: state.parties, history: state.history.slice(
+                        -50), screenshots: state.screenshots.slice(-30), savedReports: state.savedReports.slice(-20) }); }
 
-            // Navigation
-            document.querySelectorAll('.nav-tab').forEach(tab=>{
-                tab.addEventListener('click',()=>{
-                    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+            function toast(msg) { const c = document.getElementById('toastContainer'); const t = document.createElement(
+                    'div');
+                t.className = 'toast';
+                t.textContent = msg;
+                c.appendChild(t);
+                setTimeout(() => t.remove(), 3000); }
+
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                     tab.classList.add('active');
-                    const target = document.getElementById(tab.dataset.tab+'Tab');
-                    if(target) target.classList.add('active');
-                    if(tab.dataset.tab==='history') renderHistory();
-                    if(tab.dataset.tab==='screenshots') renderGallery();
-                    if(tab.dataset.tab==='economy') renderSavedReports();
+                    const target = document.getElementById(tab.dataset.tab + 'Tab');
+                    if (target) target.classList.add('active');
+                    if (tab.dataset.tab === 'history') renderHistory();
+                    if (tab.dataset.tab === 'screenshots') renderGallery();
+                    if (tab.dataset.tab === 'economy') renderSavedReports();
                 });
             });
 
-            // ---------- Parliament Chamber Rendering ----------
+            // ──────────────────────────────────────────────
+            //  PARLIAMENT CHAMBER – fully redesigned
+            // ──────────────────────────────────────────────
             function renderParliament() {
                 const svg = document.getElementById('parliamentSvg');
                 const total = state.totalSeats;
                 const parties = state.parties;
-                const assigned = parties.reduce((s,p)=>s+p.seats,0);
+                const assigned = parties.reduce((s, p) => s + p.seats, 0);
                 const unassigned = Math.max(0, total - assigned);
 
-                // Calculate rows (perfect square logic for natural amphitheater)
-                let seatsNeeded = total, rowNum=1, rows=[];
-                while(seatsNeeded>0) {
-                    const maxInRow = 2*rowNum-1;
-                    const actual = Math.min(maxInRow, seatsNeeded);
-                    rows.push({ index:rowNum, seats:actual, max:maxInRow });
-                    seatsNeeded -= actual;
+                // Determine rows – each row is a bench arc
+                let seatsRemaining = total;
+                const rows = [];
+                let rowNum = 1;
+                while (seatsRemaining > 0) {
+                    const maxInRow = 2 * rowNum + 1; // 3,5,7,9,…
+                    const actual = Math.min(maxInRow, seatsRemaining);
+                    rows.push({ index: rowNum, seats: actual });
+                    seatsRemaining -= actual;
                     rowNum++;
                 }
                 const numRows = rows.length;
-                const cx=500, cy=530;
-                const rMin=80, rMax=360;
-                const angleStart=Math.PI*0.93, angleEnd=Math.PI*0.07, angleSpan=angleStart-angleEnd;
+                const cx = 500,
+                    cy = 510;
+                const rMin = 90,
+                    rMax = 380;
+                const angleStart = Math.PI * 0.94,
+                    angleEnd = Math.PI * 0.06,
+                    angleSpan = angleStart - angleEnd;
 
-                let allSeats = [];
-                rows.forEach((row, rowIdx)=>{
-                    const t = numRows>1 ? rowIdx/(numRows-1) : 0.5;
-                    const r = rMin + t*(rMax-rMin);
+                // Build flat list of seat positions (NO random jitter)
+                const allSeats = [];
+                rows.forEach((row, rowIdx) => {
+                    const t = numRows > 1 ? rowIdx / (numRows - 1) : 0.5;
+                    const r = rMin + t * (rMax - rMin);
                     const n = row.seats;
-                    for(let s=0; s<n; s++) {
-                        const frac = n>1 ? s/(n-1) : 0.5;
-                        const angle = angleStart - frac*angleSpan;
-                        const jx = (Math.random()-0.5)*2.2, jy = (Math.random()-0.5)*2.2;
-                        allSeats.push({ x:cx+r*Math.cos(angle)+jx, y:cy-r*Math.sin(angle)+jy, rowIdx, seatIdx:s, rowTotal:n, r, angle });
+                    for (let s = 0; s < n; s++) {
+                        const frac = n > 1 ? s / (n - 1) : 0.5;
+                        const angle = angleStart - frac * angleSpan;
+                        const x = cx + r * Math.cos(angle);
+                        const y = cy - r * Math.sin(angle);
+                        allSeats.push({ x, y, rowIdx, seatIdx: s, rowTotal: n, r, angle });
                     }
                 });
 
-                let seatIdx=0;
-                let assignments = [];
-                parties.forEach(p=>{ for(let i=0;i<p.seats && seatIdx<allSeats.length;i++) { assignments.push({...allSeats[seatIdx], party:p, governing:p.governing}); seatIdx++; } });
-                while(seatIdx<allSeats.length) { assignments.push({...allSeats[seatIdx], party:null, governing:false}); seatIdx++; }
+                // Assign parties
+                let seatIdx = 0;
+                const assignments = [];
+                parties.forEach(p => {
+                    for (let i = 0; i < p.seats && seatIdx < allSeats.length; i++) {
+                        assignments.push({ ...allSeats[seatIdx], party: p, governing: p.governing });
+                        seatIdx++;
+                    }
+                });
+                while (seatIdx < allSeats.length) {
+                    assignments.push({ ...allSeats[seatIdx], party: null, governing: false });
+                    seatIdx++;
+                }
 
-                // Background: wood floor, ceiling, walls
+                // Build SVG
                 let svgContent = `
                 <defs>
-                    <pattern id="wood" patternUnits="userSpaceOnUse" width="40" height="40">
-                        <rect width="40" height="40" fill="#4a3820"/>
-                        <path d="M0,20 Q10,18 20,20 T40,20" stroke="#3a2a10" fill="none" stroke-width="0.8" opacity="0.5"/>
-                    </pattern>
-                    <radialGradient id="ceilingGlow" cx="50%" cy="10%" r="60%">
-                        <stop offset="0%" stop-color="#e8d5a3" stop-opacity="0.15"/>
-                        <stop offset="100%" stop-color="#000" stop-opacity="0"/>
-                    </radialGradient>
-                    <filter id="chairShadow" x="-10%" y="-10%" width="120%" height="120%">
-                        <feDropShadow dx="0.5" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.7"/>
-                    </filter>
-                    <filter id="govGlow" x="-30%" y="-30%" width="160%" height="160%">
-                        <feGaussianBlur stdDeviation="2.5" result="blur"/>
-                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                    </filter>
+                  <!-- Chamber floor gradient -->
+                  <radialGradient id="chamberFloor" cx="50%" cy="80%" r="55%">
+                    <stop offset="0%" stop-color="#3a3020" stop-opacity="0.9"/>
+                    <stop offset="100%" stop-color="#0f0d08" stop-opacity="1"/>
+                  </radialGradient>
+                  <!-- Warm ceiling glow -->
+                  <radialGradient id="ceilingGlow" cx="50%" cy="10%" r="65%">
+                    <stop offset="0%" stop-color="#f5e6c8" stop-opacity="0.12"/>
+                    <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+                  </radialGradient>
+                  <!-- Bench wood gradient -->
+                  <linearGradient id="benchWood" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#6b4c2a"/>
+                    <stop offset="40%" stop-color="#5a3d1e"/>
+                    <stop offset="100%" stop-color="#3a2510"/>
+                  </linearGradient>
+                  <!-- Shadow filter for benches -->
+                  <filter id="benchShadow" x="-5%" y="-5%" width="110%" height="120%">
+                    <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#000" flood-opacity="0.6"/>
+                  </filter>
+                  <!-- Glow for governing MPs -->
+                  <filter id="govGlow" x="-40%" y="-40%" width="180%" height="180%">
+                    <feGaussianBlur stdDeviation="3" result="blur"/>
+                    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
                 </defs>
-                <!-- Chamber background -->
-                <rect width="1000" height="600" fill="#0f0f14"/>
-                <rect width="1000" height="600" fill="url(#wood)" opacity="0.25"/>
-                <rect width="1000" height="600" fill="url(#ceilingGlow)"/>
-                <!-- Walls and columns -->
-                <path d="M100,100 Q500,-20 900,100" fill="none" stroke="#2a2418" stroke-width="8"/>
-                <rect x="80" y="90" width="20" height="400" fill="#2a2418" rx="4"/>
-                <rect x="900" y="90" width="20" height="400" fill="#2a2418" rx="4"/>
+
+                <!-- Background -->
+                <rect width="1000" height="580" fill="#0a0a10"/>
+                <rect width="1000" height="580" fill="url(#chamberFloor)"/>
+                <rect width="1000" height="580" fill="url(#ceilingGlow)"/>
+
+                <!-- Chamber walls / wood panelling -->
+                <path d="M60,80 Q500,-30 940,80" fill="none" stroke="#2a1f10" stroke-width="12"/>
+                <path d="M60,80 Q500,-30 940,80" fill="none" stroke="#4a3520" stroke-width="3" opacity="0.5"/>
+
+                <!-- Side columns -->
+                <rect x="70" y="70" width="16" height="420" rx="3" fill="#2a1f10" stroke="#4a3520" stroke-width="1"/>
+                <rect x="914" y="70" width="16" height="420" rx="3" fill="#2a1f10" stroke="#4a3520" stroke-width="1"/>
+
+                <!-- Central aisle (subtle) -->
+                <path d="M${cx},${cy - rMin + 25} L${cx},${cy - rMax - 25}" stroke="#2a2010" stroke-width="14" opacity="0.5"/>
+                <path d="M${cx},${cy - rMin + 25} L${cx},${cy - rMax - 25}" stroke="#4a3520" stroke-width="2" opacity="0.3"/>
+
                 <!-- Speaker's dais -->
-                <rect x="470" y="480" width="60" height="24" rx="8" fill="#3a3040" stroke="#6b5c3e" stroke-width="2" filter="url(#chairShadow)"/>
-                <text x="500" y="496" text-anchor="middle" fill="#d4b86a" font-size="9" font-family="Inter, sans-serif" font-weight="bold">SPEAKER</text>
-                <!-- Seats -->
+                <rect x="470" y="${cy - rMin + 15}" width="60" height="20" rx="6" fill="#5a3d1e" stroke="#8a6030" stroke-width="1.5" filter="url(#benchShadow)"/>
+                <text x="500" y="${cy - rMin + 29}" text-anchor="middle" fill="#e8d5a3" font-size="8" font-family="Inter, sans-serif" font-weight="bold">SPEAKER</text>
                 `;
 
+                // Draw each seat as a small bench + coloured puck
+                const benchW = 13,
+                    benchH = 8,
+                    puckR = 4;
                 assignments.forEach(seat => {
                     const color = seat.party ? seat.party.color : '#5a5a5a';
                     const name = seat.party ? seat.party.name : 'Unassigned';
-                    const govFilter = seat.governing ? 'filter="url(#govGlow)"' : 'filter="url(#chairShadow)"';
-                    const glowStroke = seat.governing ? '#ffd866' : 'rgba(255,255,255,0.2)';
-                    // Chair: brown rectangle behind the MP dot
+                    const govClass = seat.governing ? ' governing-glow' : '';
+                    const govFilter = seat.governing ? 'filter="url(#govGlow)"' :
+                        'filter="url(#benchShadow)"';
+                    const glowStroke = seat.governing ? '#ffd866' : 'rgba(255,255,255,0.25)';
+                    const benchX = seat.x - benchW / 2;
+                    const benchY = seat.y - benchH / 2;
+
                     svgContent += `
-                    <g ${govFilter} class="seat-group" data-party="${name}" data-governing="${seat.governing}">
-                        <rect x="${seat.x-5}" y="${seat.y-5}" width="10" height="10" rx="2" fill="#5a4a30" stroke="#3a2a10" stroke-width="0.8"/>
-                        <circle cx="${seat.x}" cy="${seat.y}" r="3.8" fill="${color}" stroke="${glowStroke}" stroke-width="1.2"/>
-                        <title>${name}${seat.governing?' (Governing)':''}</title>
+                    <g class="seat-group${govClass}" data-party="${name}" data-governing="${seat.governing}" ${govFilter}>
+                      <!-- Bench -->
+                      <rect x="${benchX.toFixed(1)}" y="${benchY.toFixed(1)}" width="${benchW}" height="${benchH}" rx="3" fill="url(#benchWood)" stroke="#2a1a08" stroke-width="0.8"/>
+                      <!-- MP puck -->
+                      <circle cx="${seat.x.toFixed(1)}" cy="${seat.y.toFixed(1)}" r="${puckR}" fill="${color}" stroke="${glowStroke}" stroke-width="1.2"/>
+                      <title>${name}${seat.governing ? ' (Governing)' : ''}</title>
                     </g>`;
                 });
 
@@ -425,192 +731,236 @@
 
             function renderPartyList() {
                 const container = document.getElementById('partyList');
-                const unassigned = Math.max(0, state.totalSeats - state.parties.reduce((s,p)=>s+p.seats,0));
+                const unassigned = Math.max(0, state.totalSeats - state.parties.reduce((s, p) => s + p.seats, 0));
                 let html = '';
-                state.parties.forEach((p, idx)=>{
+                state.parties.forEach((p, idx) => {
                     html += `
-                    <div class="party-chip${p.governing?' governing':''}" onclick="toggleGoverning(${idx})">
-                        <span class="swatch" style="background:${p.color};"></span>
-                        <span class="party-name">${p.name}</span>
-                        <span class="seat-count">${p.seats}</span>
-                        <button class="btn-sm" onclick="event.stopPropagation(); adjustSeats(${idx},-1)">−</button>
-                        <button class="btn-sm" onclick="event.stopPropagation(); adjustSeats(${idx},1)">+</button>
-                        <button class="btn-sm" style="background:#5a2a22;border-color:#8a3a2a;color:#faa;" onclick="event.stopPropagation(); removeParty(${idx})">×</button>
-                        <button class="btn-sm" style="background:transparent;border:1px solid #666;" onclick="event.stopPropagation(); highlightParty('${p.name}')" title="Highlight">🔍</button>
+                    <div class="party-chip${p.governing ? ' governing' : ''}" onclick="toggleGoverning(${idx})">
+                      <span class="swatch" style="background:${p.color};"></span>
+                      <span class="party-name">${p.name}</span>
+                      <span class="seat-count">${p.seats}</span>
+                      <button class="btn-sm" onclick="event.stopPropagation();adjustSeats(${idx},-1)">−</button>
+                      <button class="btn-sm" onclick="event.stopPropagation();adjustSeats(${idx},1)">+</button>
+                      <button class="btn-sm" style="background:#5a2a22;border-color:#8a3a2a;color:#faa;" onclick="event.stopPropagation();removeParty(${idx})">×</button>
+                      <button class="btn-sm" style="background:transparent;border:1px solid #666;" onclick="event.stopPropagation();highlightParty('${p.name}')" title="Highlight">🔍</button>
                     </div>`;
                 });
-                if(unassigned>0) html += `<span style="color:var(--text2);padding:8px;">+ ${unassigned} unassigned</span>`;
+                if (unassigned > 0) html +=
+                    `<span style="color:var(--text2);padding:8px;">+ ${unassigned} unassigned</span>`;
                 container.innerHTML = html;
             }
 
-            // Highlighting logic
             window.highlightParty = (partyName) => {
                 const groups = document.querySelectorAll('#parliamentSvg .seat-group');
                 groups.forEach(g => {
                     const p = g.getAttribute('data-party');
-                    if(!partyName || p === partyName) { g.style.opacity='1'; g.style.filter = g.getAttribute('data-governing')==='true'? 'url(#govGlow)' : 'url(#chairShadow)'; }
-                    else { g.style.opacity='0.3'; g.style.filter='none'; }
+                    if (!partyName || p === partyName) {
+                        g.style.opacity = '1';
+                    } else {
+                        g.style.opacity = '0.25';
+                    }
                 });
-                if(!partyName) toast('Highlight cleared'); else toast(`Highlighting ${partyName}`);
             };
 
-            // Basic party interactions
             window.adjustSeats = (idx, delta) => {
                 const p = state.parties[idx];
                 const newSeats = p.seats + delta;
-                if(newSeats<0) return;
-                const other = state.parties.reduce((s,pt,i)=>s+(i===idx?0:pt.seats),0);
-                if(newSeats+other > state.totalSeats && delta>0) { toast('Not enough unassigned seats!'); return; }
+                if (newSeats < 0) return;
+                const other = state.parties.reduce((s, pt, i) => s + (i === idx ? 0 : pt.seats), 0);
+                if (newSeats + other > state.totalSeats && delta > 0) { toast('Not enough unassigned seats!'); return; }
                 p.seats = newSeats;
                 refresh();
             };
-            window.toggleGoverning = (idx) => { state.parties[idx].governing = !state.parties[idx].governing; refresh(); };
-            window.removeParty = (idx) => {
-                if(state.parties.length<=1) { toast('Need at least one party!'); return; }
-                state.parties.splice(idx,1); refresh(); toast('Party removed.');
-            };
-            window.addParty = () => {
-                const name = prompt('Party name:','New Party'); if(!name||!name.trim()) return;
-                state.parties.push({name:name.trim(), color:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'), seats:0, governing:false});
-                refresh(); toast(`Added "${name.trim()}"`);
-            };
-            window.updateTotalSeats = () => {
-                const val = parseInt(document.getElementById('totalSeats').value) || 169;
+            window.toggleGoverning = (idx) => { state.parties[idx].governing = !state.parties[idx].governing;
+                refresh(); };
+            window.removeParty = (idx) => { if (state.parties.length <= 1) { toast('Need at least one party!'); return; }
+                state.parties.splice(idx, 1);
+                refresh();
+                toast('Party removed.'); };
+            window.addParty = () => { const name = prompt('Party name:', 'New Party'); if (!name || !name.trim())
+                return;
+                state.parties.push({ name: name.trim(), color: '#' + Math.floor(Math.random() * 16777215).toString(
+                        16).padStart(6, '0'), seats: 0, governing: false });
+                refresh();
+                toast(`Added "${name.trim()}"`); };
+            window.updateTotalSeats = () => { const val = parseInt(document.getElementById('totalSeats').value) || 169;
                 state.totalSeats = Math.max(5, Math.min(1000, val));
                 document.getElementById('totalSeats').value = state.totalSeats;
-                refresh();
-            };
-            window.formGovernment = () => {
-                const gov = state.parties.filter(p=>p.governing);
-                const seats = gov.reduce((s,p)=>s+p.seats,0);
-                if(!gov.length) toast('Select at least one governing party.');
-                else if(seats < state.totalSeats/2) toast(`Minority government (${seats} seats).`);
-                else toast(`Government formed with ${seats} seats.`);
-            };
-            window.saveToHistory = () => {
-                const entry = { date: new Date().toISOString(), label: prompt('Label:','Government '+(state.history.length+1))||'Government', totalSeats:state.totalSeats, parties:JSON.parse(JSON.stringify(state.parties)) };
-                state.history.unshift(entry); if(state.history.length>50) state.history=state.history.slice(0,50);
-                persist(); renderHistory(); toast('Saved!');
-            };
-            window.resetParliament = () => {
-                if(confirm('Reset to default?')) { state.totalSeats=169; state.parties=JSON.parse(JSON.stringify(DEFAULT)); document.getElementById('totalSeats').value=169; refresh(); }
-            };
+                refresh(); };
+            window.formGovernment = () => { const gov = state.parties.filter(p => p.governing); const seats = gov.reduce((s,
+                    p) => s + p.seats, 0); if (!gov.length) toast('Select at least one governing party.'); else if (
+                    seats < state.totalSeats / 2) toast(`Minority government (${seats} seats).`); else toast(
+                    `Government formed with ${seats} seats.`); };
+            window.saveToHistory = () => { const entry = { date: new Date().toISOString(), label: prompt('Label:',
+                        'Government ' + (state.history.length + 1)) || 'Government', totalSeats: state.totalSeats,
+                    parties: JSON.parse(JSON.stringify(state.parties)) };
+                state.history.unshift(entry); if (state.history.length > 50) state.history = state.history.slice(0,
+                50);
+                persist();
+                renderHistory();
+                toast('Saved!'); };
+            window.resetParliament = () => { if (confirm('Reset to default?')) { state.totalSeats = 169;
+                    state.parties = JSON.parse(JSON.stringify(DEFAULT));
+                    document.getElementById('totalSeats').value = 169;
+                    refresh(); } };
 
-            function refresh() { renderParliament(); persist(); }
+            function refresh() { renderParliament();
+                persist(); }
 
-            // ---------- History ----------
+            // ──────────────────────────────────────────────
+            //  HISTORY
+            // ──────────────────────────────────────────────
             function renderHistory() {
                 const container = document.getElementById('historyTimeline');
-                if(!state.history.length) { container.innerHTML='<p>No saved governments yet.</p>'; return; }
-                container.innerHTML = state.history.map((e,i)=>`
-                    <div class="timeline-entry" onclick="viewHistory(${i})">
-                        <div class="date">${new Date(e.date).toLocaleDateString()}</div>
-                        <div class="gov-name">${e.label}</div>
-                    </div>`).join('');
+                if (!state.history.length) { container.innerHTML = '<p>No saved governments yet.</p>'; return; }
+                container.innerHTML = state.history.map((e, i) => `
+                  <div class="timeline-entry" onclick="viewHistory(${i})">
+                    <div class="date">${new Date(e.date).toLocaleDateString()}</div>
+                    <div class="gov-name">${e.label}</div>
+                  </div>`).join('');
                 document.getElementById('historyCount').textContent = state.history.length;
             }
-            window.clearHistory = ()=>{ if(confirm('Clear history?')) { state.history=[]; persist(); renderHistory(); } };
-            window.exportHistory = ()=>{ const b=new Blob([JSON.stringify(state.history)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='history.json'; a.click(); };
-            window.viewHistory = (idx)=>{
-                const e=state.history[idx];
-                const modal = document.getElementById('modalContent');
-                modal.innerHTML = `<button class="btn btn-sm" onclick="closeModalDirect()">✕</button><h3>${e.label}</h3><p>Seats: ${e.totalSeats}</p><button class="btn btn-primary" onclick="restoreHistory(${idx})">Restore</button>`;
-                document.getElementById('modalOverlay').style.display='flex';
-            };
-            window.restoreHistory = (idx)=>{
-                const e=state.history[idx];
-                state.totalSeats=e.totalSeats; state.parties=JSON.parse(JSON.stringify(e.parties));
-                document.getElementById('totalSeats').value=e.totalSeats; refresh(); closeModalDirect(); toast('Parliament restored!');
-            };
+            window.clearHistory = () => { if (confirm('Clear history?')) { state.history = [];
+                    persist();
+                    renderHistory(); } };
+            window.exportHistory = () => { const b = new Blob([JSON.stringify(state.history)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(b);
+                a.download = 'history.json';
+                a.click(); };
+            window.viewHistory = (idx) => { const e = state.history[idx]; const modal = document.getElementById(
+                    'modalContent');
+                modal.innerHTML =
+                    `<button class="btn btn-sm" onclick="closeModalDirect()">✕</button><h3>${e.label}</h3><p>Seats: ${e.totalSeats}</p><button class="btn btn-primary" onclick="restoreHistory(${idx})">Restore</button>`;
+                document.getElementById('modalOverlay').style.display = 'flex'; };
+            window.restoreHistory = (idx) => { const e = state.history[idx];
+                state.totalSeats = e.totalSeats;
+                state.parties = JSON.parse(JSON.stringify(e.parties));
+                document.getElementById('totalSeats').value = e.totalSeats;
+                refresh();
+                closeModalDirect();
+                toast('Parliament restored!'); };
 
-            // ---------- Economic Report ----------
+            // ──────────────────────────────────────────────
+            //  ECONOMIC REPORT
+            // ──────────────────────────────────────────────
             window.generateReport = () => {
-                const country = document.getElementById('ecoCountry').value||'Unknown';
-                const year = document.getElementById('ecoYear').value||'18--';
-                const gdp = parseFloat(document.getElementById('ecoGDP').value)||0;
-                const growth = parseFloat(document.getElementById('ecoGrowth').value)||0;
-                const revenue = parseFloat(document.getElementById('ecoRevenue').value)||0;
-                const expend = parseFloat(document.getElementById('ecoExpend').value)||0;
-                const debt = parseFloat(document.getElementById('ecoDebt').value)||0;
-                const balance = revenue-expend;
+                const country = document.getElementById('ecoCountry').value || 'Unknown';
+                const year = document.getElementById('ecoYear').value || '18--';
+                const gdp = parseFloat(document.getElementById('ecoGDP').value) || 0;
+                const growth = parseFloat(document.getElementById('ecoGrowth').value) || 0;
+                const revenue = parseFloat(document.getElementById('ecoRevenue').value) || 0;
+                const expend = parseFloat(document.getElementById('ecoExpend').value) || 0;
+                const debt = parseFloat(document.getElementById('ecoDebt').value) || 0;
+                const balance = revenue - expend;
                 const html = `
                 <div class="report-paper">
-                    <div class="report-header">
-                        <div class="bank-name">Royal Economic Intelligence</div>
-                        <div class="report-title">Annual Economic Report</div>
-                        <div class="country-year">${country} — ${year}</div>
-                    </div>
-                    <div class="report-section"><h3>Summary</h3><p>${document.getElementById('ecoNotes').value}</p></div>
-                    <div class="report-section">
-                        <h3>Key Indicators</h3>
-                        <table class="report-table">
-                            <tr><td>GDP</td><td class="num">£${(gdp/1000).toFixed(1)}B</td></tr>
-                            <tr><td>Growth</td><td class="num">${growth}%</td></tr>
-                            <tr><td>Balance</td><td class="num">£${balance}M</td></tr>
-                            <tr><td>Debt</td><td class="num">£${debt}M</td></tr>
-                        </table>
-                    </div>
-                    <div class="report-footer">Generated ${new Date().toLocaleDateString()}</div>
+                  <div class="report-header">
+                    <div class="bank-name">Royal Economic Intelligence</div>
+                    <div class="report-title">Annual Economic Report</div>
+                    <div class="country-year">${country} — ${year}</div>
+                  </div>
+                  <div class="report-section"><h3>Summary</h3><p>${document.getElementById('ecoNotes').value}</p></div>
+                  <div class="report-section">
+                    <h3>Key Indicators</h3>
+                    <table class="report-table">
+                      <tr><td>GDP</td><td class="num">£${(gdp/1000).toFixed(1)}B</td></tr>
+                      <tr><td>Growth</td><td class="num">${growth}%</td></tr>
+                      <tr><td>Balance</td><td class="num">£${balance}M</td></tr>
+                      <tr><td>Debt</td><td class="num">£${debt}M</td></tr>
+                    </table>
+                  </div>
+                  <div class="report-footer">Generated ${new Date().toLocaleDateString()}</div>
                 </div>`;
                 document.getElementById('reportContent').innerHTML = html;
-                document.getElementById('reportContainer').style.display='block';
+                document.getElementById('reportContainer').style.display = 'block';
                 toast('Report generated!');
             };
-            window.printReport = () => { if(!document.getElementById('reportContent').innerHTML) toast('Generate report first'); else window.print(); };
-            window.saveEconomicReport = () => {
-                const html = document.getElementById('reportContent').innerHTML;
-                if(!html) { toast('Generate report first'); return; }
-                state.savedReports.unshift({date:new Date().toISOString(), country:document.getElementById('ecoCountry').value, year:document.getElementById('ecoYear').value, html});
-                if(state.savedReports.length>20) state.savedReports=state.savedReports.slice(0,20);
-                persist(); renderSavedReports(); toast('Report saved!');
-            };
+            window.printReport = () => { if (!document.getElementById('reportContent').innerHTML) toast(
+                    'Generate report first'); else window.print(); };
+            window.saveEconomicReport = () => { const html = document.getElementById('reportContent').innerHTML; if (!html) { toast(
+                        'Generate report first'); return; }
+                state.savedReports.unshift({ date: new Date().toISOString(), country: document.getElementById(
+                        'ecoCountry').value, year: document.getElementById('ecoYear').value, html }); if (state
+                    .savedReports.length > 20) state.savedReports = state.savedReports.slice(0, 20);
+                persist();
+                renderSavedReports();
+                toast('Report saved!'); };
+
             function renderSavedReports() {
                 const container = document.getElementById('savedReportsList');
-                if(!state.savedReports.length) { container.innerHTML='<p>No saved reports.</p>'; return; }
-                container.innerHTML = state.savedReports.map((r,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:8px;border-bottom:1px solid var(--border);"><span>${r.country} ${r.year}</span><button class="btn btn-sm" onclick="loadSavedReport(${i})">View</button><button class="btn btn-sm btn-danger" onclick="deleteSavedReport(${i})">Del</button></div>`).join('');
+                if (!state.savedReports.length) { container.innerHTML = '<p>No saved reports.</p>'; return; }
+                container.innerHTML = state.savedReports.map((r, i) =>
+                    `<div style="display:flex;align-items:center;gap:12px;padding:8px;border-bottom:1px solid var(--border);"><span>${r.country} ${r.year}</span><button class="btn btn-sm" onclick="loadSavedReport(${i})">View</button><button class="btn btn-sm btn-danger" onclick="deleteSavedReport(${i})">Del</button></div>`
+                    ).join('');
             }
-            window.loadSavedReport = (i) => { document.getElementById('reportContent').innerHTML = state.savedReports[i].html; document.getElementById('reportContainer').style.display='block'; };
-            window.deleteSavedReport = (i) => { if(confirm('Delete?')) { state.savedReports.splice(i,1); persist(); renderSavedReports(); } };
+            window.loadSavedReport = (i) => { document.getElementById('reportContent').innerHTML = state.savedReports[i]
+                    .html;
+                document.getElementById('reportContainer').style.display = 'block'; };
+            window.deleteSavedReport = (i) => { if (confirm('Delete?')) { state.savedReports.splice(i, 1);
+                    persist();
+                    renderSavedReports(); } };
 
-            // ---------- Screenshots ----------
+            // ──────────────────────────────────────────────
+            //  SCREENSHOTS
+            // ──────────────────────────────────────────────
             window.handleFileUpload = (e) => {
                 const files = e.target.files;
-                if(!files.length) return;
-                Array.from(files).forEach(file=>{
-                    if(!file.type.startsWith('image/')) return;
+                if (!files.length) return;
+                Array.from(files).forEach(file => {
+                    if (!file.type.startsWith('image/')) return;
                     const reader = new FileReader();
                     reader.onload = (ev) => {
                         let dataUrl = ev.target.result;
-                        if(dataUrl.length>500000) {
-                            const img = new Image(); img.onload = ()=>{ const c=document.createElement('canvas'); c.width=img.width*0.5; c.height=img.height*0.5; c.getContext('2d').drawImage(img,0,0,c.width,c.height); addScreenshot(file.name, c.toDataURL('image/jpeg',0.7)); }; img.src=dataUrl;
-                        } else addScreenshot(file.name, dataUrl);
+                        if (dataUrl.length > 500000) { const img = new Image();
+                            img.onload = () => { const c = document.createElement('canvas');
+                                c.width = img.width * 0.5;
+                                c.height = img.height * 0.5;
+                                c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                                addScreenshot(file.name, c.toDataURL('image/jpeg', 0.7)); };
+                            img.src = dataUrl; } else addScreenshot(file.name, dataUrl);
                     };
                     reader.readAsDataURL(file);
                 });
-                e.target.value='';
+                e.target.value = '';
             };
-            function addScreenshot(name, dataUrl) { state.screenshots.unshift({date:new Date().toISOString(),name,dataUrl}); if(state.screenshots.length>30) state.screenshots=state.screenshots.slice(0,30); persist(); renderGallery(); }
-            function renderGallery() {
-                const grid = document.getElementById('galleryGrid');
-                if(!state.screenshots.length) { grid.innerHTML='<p>No screenshots.</p>'; return; }
-                grid.innerHTML = state.screenshots.map((s,i)=>`<div class="gallery-item" onclick="viewScreenshot(${i})"><img src="${s.dataUrl}" alt="${s.name}"></div>`).join('');
-            }
-            window.viewScreenshot = (i) => { const s=state.screenshots[i]; document.getElementById('modalContent').innerHTML=`<button class="btn btn-sm" onclick="closeModalDirect()">✕</button><img src="${s.dataUrl}" style="width:100%">`; document.getElementById('modalOverlay').style.display='flex'; };
-            window.downloadScreenshot = (i) => { const s=state.screenshots[i]; const a=document.createElement('a'); a.href=s.dataUrl; a.download=s.name; a.click(); };
-            window.deleteScreenshot = (i) => { if(confirm('Delete?')){ state.screenshots.splice(i,1); persist(); renderGallery(); closeModalDirect(); } };
-            window.clearScreenshots = () => { if(confirm('Clear all?')){ state.screenshots=[]; persist(); renderGallery(); } };
 
-            // Modal
-            window.closeModal = (e) => { if(e.target===document.getElementById('modalOverlay')) document.getElementById('modalOverlay').style.display='none'; };
-            window.closeModalDirect = () => { document.getElementById('modalOverlay').style.display='none'; };
+            function addScreenshot(name, dataUrl) { state.screenshots.unshift({ date: new Date().toISOString(), name,
+                    dataUrl }); if (state.screenshots.length > 30) state.screenshots = state.screenshots.slice(0, 30);
+                persist();
+                renderGallery(); }
 
-            // Drag & drop
+            function renderGallery() { const grid = document.getElementById('galleryGrid'); if (!state.screenshots
+                    .length) { grid.innerHTML = '<p>No screenshots.</p>'; return; }
+                grid.innerHTML = state.screenshots.map((s, i) =>
+                    `<div class="gallery-item" onclick="viewScreenshot(${i})"><img src="${s.dataUrl}" alt="${s.name}"></div>`
+                    ).join(''); }
+            window.viewScreenshot = (i) => { const s = state.screenshots[i];
+                document.getElementById('modalContent').innerHTML =
+                    `<button class="btn btn-sm" onclick="closeModalDirect()">✕</button><img src="${s.dataUrl}" style="width:100%">`;
+                document.getElementById('modalOverlay').style.display = 'flex'; };
+            window.deleteScreenshot = (i) => { if (confirm('Delete?')) { state.screenshots.splice(i, 1);
+                    persist();
+                    renderGallery();
+                    closeModalDirect(); } };
+            window.clearScreenshots = () => { if (confirm('Clear all?')) { state.screenshots = [];
+                    persist();
+                    renderGallery(); } };
+
+            window.closeModal = (e) => { if (e.target === document.getElementById('modalOverlay')) document.getElementById(
+                    'modalOverlay').style.display = 'none'; };
+            window.closeModalDirect = () => { document.getElementById('modalOverlay').style.display = 'none'; };
+
             const uploadZone = document.getElementById('uploadZone');
-            uploadZone.addEventListener('dragover', e=>{ e.preventDefault(); uploadZone.style.borderColor='var(--gold)'; });
-            uploadZone.addEventListener('dragleave', ()=> uploadZone.style.borderColor='');
-            uploadZone.addEventListener('drop', e=>{ e.preventDefault(); uploadZone.style.borderColor=''; const dt = new DataTransfer(); Array.from(e.dataTransfer.files).forEach(f=>dt.items.add(f)); document.getElementById('fileInput').files=dt.files; handleFileUpload({target:{files:dt.files}}); });
+            uploadZone.addEventListener('dragover', e => { e.preventDefault();
+                uploadZone.style.borderColor = 'var(--gold)'; });
+            uploadZone.addEventListener('dragleave', () => uploadZone.style.borderColor = '');
+            uploadZone.addEventListener('drop', e => { e.preventDefault();
+                uploadZone.style.borderColor = ''; const dt = new DataTransfer();
+                Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f));
+                document.getElementById('fileInput').files = dt.files;
+                handleFileUpload({ target: { files: dt.files } }); });
 
-            // Init
             document.getElementById('totalSeats').value = state.totalSeats;
             refresh();
             renderHistory();
