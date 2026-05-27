@@ -582,82 +582,116 @@
             });
 
             // ╔══════════════════════════════════════════════════════════╗
-            // ║  WIKIPEDIA-STYLE HEMICYCLE LAYOUT (as used on Commons) ║
+            // ║  WIKIPEDIA-STYLE BLOCK HEMICYCLE (rectangular blocks)  ║
+            // ║  Arch on top + straight horizontal rows at bottom      ║
             // ╚══════════════════════════════════════════════════════════╝
-            // Based on the actual algorithm from:
-            //   https://en.wikipedia.org/wiki/Module:Parliament_diagram
-            //   https://github.com/Gouvernathor/parliamentarch
             //
-            // Key parameters (matching Wikipedia's template):
-            //   dimx = 175   (half the diagram width)
-            //   dimr = 50    (reference radius for row spacing)
-            //   dimc = 40    (dot diameter factor)
-            //   viewBox = "0 0 360 185"  (2:1 aspect ratio)
+            // viewBox = "0 0 360 185"
+            // Center of arc: cx=180, cy=160 (near bottom)
+            // Arch radius range: from ~45 to ~160
+            // Straight rows: below the arch, y > ~140
 
-            const DIMX = 175; // half-width of the diagram
-            const DIMR = 50; // reference radius for row spacing
-            const DIMC = 40; // dot diameter factor
+            const VIEW_W = 360;
+            const VIEW_H = 185;
+            const CX = 180; // center x (aisle center)
+            const CY = 160; // center y (arc center, near bottom)
+            const AISLE_HALF = 5; // half-width of center aisle gap
+            const BLOCK_W = 7; // block width
+            const BLOCK_H = 4.5; // block height
+            const BLOCK_GAP = 1.2; // gap between blocks
 
-            // Pre-computed maximum dots per bench count (from Wikipedia module)
-            // These are the cumulative maximum dots that fit in 1,2,3,... rows
-            const TOTALS = [4, 17, 36, 65, 100, 144, 196, 255, 322, 398, 480, 571, 670, 776, 891, 1013, 1143, 1281, 1427,
-                1580, 1743, 1911, 2089
-            ];
+            function computeBlockPositions(totalSeats) {
+                // Determine how many rows are needed
+                // Start from the outermost arc and work inward
+                const maxRadius = 158;
+                const minRadius = 42;
+                const rowSpacing = BLOCK_H + BLOCK_GAP;
 
-            function computeSeatPositions(totalDots) {
-                // Determine how many benches (rows) are needed
-                let benches = 1;
-                while (benches < TOTALS.length && totalDots > TOTALS[benches]) {
-                    benches++;
+                // Calculate number of rows that fit
+                const maxRows = Math.floor((maxRadius - minRadius) / rowSpacing) + 1;
+
+                // Build rows from outside in
+                let rows = [];
+                let seatsRemaining = totalSeats;
+                let currentRadius = maxRadius;
+
+                for (let ri = 0; ri < maxRows && seatsRemaining > 0; ri++) {
+                    const r = maxRadius - ri * rowSpacing;
+                    if (r < minRadius) break;
+
+                    // Calculate how many blocks fit on this arc (full semi-circle minus aisle)
+                    const arcLength = Math.PI * r; // half circumference
+                    const usableArc = arcLength - 2 * AISLE_HALF; // minus aisle gap
+                    const maxBlocks = Math.floor(usableArc / (BLOCK_W + BLOCK_GAP));
+                    const blocksInRow = Math.min(maxBlocks, seatsRemaining);
+
+                    rows.push({ radius: r, count: blocksInRow, maxCount: maxBlocks, index: ri });
+                    seatsRemaining -= blocksInRow;
                 }
-                if (benches >= TOTALS.length) benches = TOTALS.length;
 
-                const dd = DIMR / benches; // distance between arches (row thickness)
-                const dotRadius = 0.7 * dd; // size of the circles
+                // If we still have seats, add straight rows at the bottom
+                const straightRowYStart = CY - minRadius + rowSpacing;
+                const straightRows = [];
+                const straightRowCapacity = Math.floor((VIEW_W - 2 * AISLE_HALF - 10) / (BLOCK_W + BLOCK_GAP));
 
-                let list = []; // array of { angle: 0..1, radius: number }
-                let dotsPlaced = 0;
+                while (seatsRemaining > 0) {
+                    const count = Math.min(straightRowCapacity, seatsRemaining);
+                    straightRows.push({ y: straightRowYStart + straightRows.length * rowSpacing, count, isStraight: true });
+                    seatsRemaining -= count;
+                }
 
-                // Place dots on all rows except the outermost
-                for (let rg = 0; rg < benches - 1; rg++) {
-                    const rr = DIMX - dd * (2 * rg + 1); // radius of this row
-                    const jj = Math.floor((totalDots / TOTALS[benches]) * Math.PI / (2 * Math.asin(dd / rr))) + 1;
-                    if (jj === 1) {
-                        list.push({ angle: 0.5, radius: rr });
-                        dotsPlaced++;
-                    } else {
-                        for (let ps = 0; ps < jj; ps++) {
-                            const aa = ps / (jj - 1);
-                            list.push({ angle: aa, radius: rr });
-                            dotsPlaced++;
-                        }
+                // Now build the complete position list
+                let positions = [];
+                const totalAssigned = totalSeats - seatsRemaining;
+
+                // Process arched rows (from outermost to innermost)
+                rows.forEach(row => {
+                    const r = row.radius;
+                    const n = row.count;
+                    // Blocks span from angle π (left) to 0 (right), minus aisle
+                    // The full arc from angle π to 0 has length π*r
+                    // Each block occupies (BLOCK_W + BLOCK_GAP) along the arc
+                    const totalArcSpan = n * (BLOCK_W + BLOCK_GAP);
+                    const halfSpan = totalArcSpan / 2;
+                    // Center the blocks around the top (angle = π/2)
+                    const centerAngle = Math.PI / 2;
+                    const startAngle = centerAngle - halfSpan / r;
+                    const endAngle = centerAngle + halfSpan / r;
+
+                    for (let i = 0; i < n; i++) {
+                        const frac = n > 1 ? i / (n - 1) : 0.5;
+                        const angle = startAngle + frac * (endAngle - startAngle);
+                        const x = CX + r * Math.cos(angle);
+                        const y = CY - r * Math.sin(angle);
+                        // Rotation: tangent to arc = perpendicular to radius
+                        const rotDeg = (angle - Math.PI / 2) * (180 / Math.PI);
+                        positions.push({ x, y, rotation: rotDeg, isStraight: false, radius: r, angle });
                     }
-                }
-
-                // Place remaining dots on the outermost row
-                const jj = totalDots - dotsPlaced;
-                const rr = DIMX - dd * (2 * benches - 1);
-                if (jj === 1) {
-                    list.push({ angle: 0.5, radius: rr });
-                } else if (jj > 1) {
-                    for (let ps = 0; ps < jj; ps++) {
-                        const aa = ps / (jj - 1);
-                        list.push({ angle: aa, radius: rr });
-                    }
-                }
-
-                // Sort by increasing angle, then by increasing radius
-                list.sort((a, b) => {
-                    if (a.angle !== b.angle) return a.angle - b.angle;
-                    return a.radius - b.radius;
                 });
 
-                // Convert to Cartesian coordinates
-                return list.map(dot => {
-                    const px = DIMX - dot.radius * Math.cos(Math.PI * dot.angle);
-                    const py = DIMC + dot.radius * Math.sin(Math.PI * dot.angle);
-                    return { x: px, y: py, radius: dot.radius, angle: dot.angle };
+                // Process straight rows
+                straightRows.forEach(row => {
+                    const n = row.count;
+                    const y = row.y;
+                    const totalWidth = n * (BLOCK_W + BLOCK_GAP);
+                    const startX = CX - totalWidth / 2;
+
+                    for (let i = 0; i < n; i++) {
+                        const x = startX + i * (BLOCK_W + BLOCK_GAP) + BLOCK_W / 2;
+                        positions.push({ x, y, rotation: 0, isStraight: true });
+                    }
                 });
+
+                // Sort: straight rows first (bottom), then arched rows by radius (outermost first for party assignment)
+                positions.sort((a, b) => {
+                    if (a.isStraight && !b.isStraight) return -1;
+                    if (!a.isStraight && b.isStraight) return 1;
+                    if (a.isStraight && b.isStraight) return a.y - b.y;
+                    // For arched, outermost (largest radius) first
+                    return b.radius - a.radius;
+                });
+
+                return positions;
             }
 
             function renderParliament() {
@@ -667,10 +701,9 @@
                 const assigned = parties.reduce((s, p) => s + p.seats, 0);
                 const unassigned = Math.max(0, total - assigned);
 
-                const positions = computeSeatPositions(total);
-                const dotRadius = 0.7 * (DIMR / Math.max(1, TOTALS.findIndex(t => t >= total) + 1));
+                const positions = computeBlockPositions(total);
 
-                // Assign parties to positions (in angle order)
+                // Assign parties to positions (in sorted order)
                 let posIdx = 0;
                 const assignments = [];
                 parties.forEach(p => {
@@ -685,23 +718,39 @@
                 }
 
                 // Build SVG
-                let svgContent = `<rect width="360" height="185" fill="#fff"/>`;
+                let svgContent = `<rect width="${VIEW_W}" height="${VIEW_H}" fill="#fff"/>`;
 
-                // Draw each seat dot
+                // Draw center aisle marker (subtle)
+                svgContent +=
+                    `<line x1="${CX}" y1="0" x2="${CX}" y2="${VIEW_H}" stroke="#ddd" stroke-width="${AISLE_HALF*2}" opacity="0.4"/>`;
+
+                // Draw each block
                 assignments.forEach(seat => {
-                    const color = seat.party ? seat.party.color : '#ccc';
+                    const color = seat.party ? seat.party.color : '#ddd';
                     const name = seat.party ? seat.party.name : 'Unassigned';
-                    const stroke = seat.governing ? '#000' : '#888';
-                    const strokeWidth = seat.governing ? '1.2' : '0.6';
-                    svgContent += `
-                    <circle cx="${seat.x.toFixed(2)}" cy="${seat.y.toFixed(2)}" r="${dotRadius.toFixed(2)}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}" class="seat-dot" data-party="${name}" data-governing="${seat.governing}">
-                      <title>${name}${seat.governing ? ' (Governing)' : ''}</title>
-                    </circle>`;
+                    const stroke = seat.governing ? '#000' : '#999';
+                    const strokeWidth = seat.governing ? '1.0' : '0.5';
+
+                    if (seat.isStraight || Math.abs(seat.rotation) < 0.5) {
+                        // No rotation needed
+                        svgContent += `
+                        <rect x="${(seat.x - BLOCK_W/2).toFixed(2)}" y="${(seat.y - BLOCK_H/2).toFixed(2)}" width="${BLOCK_W}" height="${BLOCK_H}" rx="1" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}" data-party="${name}" data-governing="${seat.governing}">
+                          <title>${name}${seat.governing ? ' (Governing)' : ''}</title>
+                        </rect>`;
+                    } else {
+                        // Rotated block
+                        svgContent += `
+                        <g transform="translate(${seat.x.toFixed(2)}, ${seat.y.toFixed(2)}) rotate(${seat.rotation.toFixed(2)})">
+                          <rect x="${(-BLOCK_W/2).toFixed(2)}" y="${(-BLOCK_H/2).toFixed(2)}" width="${BLOCK_W}" height="${BLOCK_H}" rx="1" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}" data-party="${name}" data-governing="${seat.governing}">
+                            <title>${name}${seat.governing ? ' (Governing)' : ''}</title>
+                          </rect>
+                        </g>`;
+                    }
                 });
 
                 // Total seat count label (centered at bottom)
                 svgContent +=
-                    `<text x="${DIMX}" y="${DIMC + 18}" text-anchor="middle" fill="#000" font-family="Helvetica, Arial, sans-serif" font-size="9" font-weight="bold">${total}</text>`;
+                    `<text x="${CX}" y="${VIEW_H - 6}" text-anchor="middle" fill="#000" font-family="Helvetica, Arial, sans-serif" font-size="10" font-weight="bold">${total}</text>`;
 
                 svg.innerHTML = svgContent;
                 document.getElementById('seatSummary').textContent = `${total} total seats | ${unassigned} unassigned`;
@@ -729,7 +778,6 @@
                 container.innerHTML = html;
             }
 
-            // ─── Party interactions ───
             window.adjustSeats = (idx, delta) => {
                 const p = state.parties[idx];
                 const newSeats = p.seats + delta;
@@ -775,7 +823,6 @@
             function refresh() { renderParliament();
                 persist(); }
 
-            // ─── History ───
             function renderHistory() {
                 const container = document.getElementById('historyTimeline');
                 if (!state.history.length) { container.innerHTML = '<p>No saved governments yet.</p>'; return; }
@@ -807,7 +854,6 @@
                 closeModalDirect();
                 toast('Parliament restored!'); };
 
-            // ─── Economic Report ───
             window.generateReport = () => {
                 const country = document.getElementById('ecoCountry').value || 'Unknown';
                 const year = document.getElementById('ecoYear').value || '18--';
@@ -865,7 +911,6 @@
                     persist();
                     renderSavedReports(); } };
 
-            // ─── Screenshots ───
             window.handleFileUpload = (e) => {
                 const files = e.target.files;
                 if (!files.length) return;
